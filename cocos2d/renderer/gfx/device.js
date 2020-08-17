@@ -482,7 +482,7 @@ function bindInstance (gl, program) {
 /**
  * _commitVertexBuffers
  */
-function _commitVertexBuffers(device, gl, cur, next, isInstance) {
+_commitVertexBuffers(gl, cur, next, isInstance) {
   let attrsDirty = false;
 
   // nothing changed for vertex buffer
@@ -507,8 +507,8 @@ function _commitVertexBuffers(device, gl, cur, next, isInstance) {
   }
 
   if (attrsDirty) {
-    for (let i = 0; i < device._caps.maxVertexAttribs; ++i) {
-      device._newAttributes[i] = 0;
+    for (let i = 0; i < this._caps.maxVertexAttribs; ++i) {
+      this._newAttributes[i] = 0;
     }
 
     for (let i = 0; i < next.maxStream + 1; ++i) {
@@ -531,11 +531,11 @@ function _commitVertexBuffers(device, gl, cur, next, isInstance) {
           continue;
         }
 
-        if (device._enabledAttributes[attr.location] === 0) {
+        if (this._enabledAttributes[attr.location] === 0) {
           gl.enableVertexAttribArray(attr.location);
-          device._enabledAttributes[attr.location] = 1;
+          this._enabledAttributes[attr.location] = 1;
         }
-        device._newAttributes[attr.location] = 1;
+        this._newAttributes[attr.location] = 1;
 
         gl.vertexAttribPointer(
           attr.location,
@@ -547,22 +547,22 @@ function _commitVertexBuffers(device, gl, cur, next, isInstance) {
         );
 
         if (isInstance) {
-          device.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 1);
+          this.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 1);
           // maxLocation = Math.max(attr.location, maxLocation);
         }
         else {
-          device.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 0);
+          this.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 0);
         }
-        
+
       }
     }
 
     if (!isInstance) {
       // disable unused attributes
-      for (let i = 0; i < device._caps.maxVertexAttribs; ++i) {
-        if (device._enabledAttributes[i] !== device._newAttributes[i]) {
+      for (let i = 0; i < this._caps.maxVertexAttribs; ++i) {
+        if (this._enabledAttributes[i] !== this._newAttributes[i]) {
           gl.disableVertexAttribArray(i);
-          device._enabledAttributes[i] = 0;
+          this._enabledAttributes[i] = 0;
         }
       }
     }
@@ -1336,7 +1336,7 @@ export default class Device {
   resetDrawCalls () {
     this._stats.drawcalls = 0;
   }
-  
+
   /**
    * @method getDrawCalls
    */
@@ -1375,7 +1375,7 @@ export default class Device {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, next.indexBuffer && next.indexBuffer._glID !== -1 ? next.indexBuffer._glID : null);
       }
     }
-    
+
 
     // commit program
     let programDirty = false;

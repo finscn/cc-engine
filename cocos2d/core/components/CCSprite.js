@@ -354,7 +354,7 @@ var Sprite = cc.Class({
             set (value) {
                 if (this._isTrimmedMode !== value) {
                     this._isTrimmedMode = value;
-                    if (this._type === SpriteType.SIMPLE || this._type === SpriteType.MESH) {
+                    if (this._type === SpriteType.SIMPLE || this._type === SpriteType.MESH || this._type === SpriteType.QuadInstance) {
                         this.setVertsDirty();
                     }
                 }
@@ -447,7 +447,7 @@ var Sprite = cc.Class({
             if (material.getDefine('USE_TEXTURE') !== undefined) {
                 material.define('USE_TEXTURE', true);
             }
-            if (material.hasProperty('texture')) {
+            if (material.getProperty('texture') !== undefined) {
                 material.setProperty('texture', texture);
             }
         }

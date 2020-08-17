@@ -14,7 +14,7 @@ function parseProperties (effectAsset, passJson) {
     let propertiesJson = passJson.properties || {};
     let program = getInvolvedProgram(passJson.program);
 
-    // check whether properties are defined in the shaders 
+    // check whether properties are defined in the shaders
     for (let prop in propertiesJson) {
         let uniformInfo = program.uniforms.find(u => u.name === prop);
         // the property is not defined in all the shaders used in techs
@@ -31,7 +31,7 @@ function parseProperties (effectAsset, passJson) {
             prop = properties[name] = Object.assign({}, u),
             propInfo = propertiesJson[name];
 
-        let value = enums2default[u.type];
+        let value;
         if (propInfo) {
             if (propInfo.type === enums.PARAM_TEXTURE_2D) {
                 value = null;
@@ -45,6 +45,10 @@ function parseProperties (effectAsset, passJson) {
         }
         else {
             value = enums2default[u.type];
+        }
+
+        if (value === undefined) {
+            value = null;
         }
 
         prop.value = value;
@@ -126,7 +130,7 @@ if (CC_EDITOR) {
                 let props = pass.properties;
                 for (let name in props) {
                     newProps[name] = getInspectorProps(props[name]);
-                    
+
                     let u = program.uniforms.find(u => u.name === name);
                     newProps[name].defines = u.defines || [];
                 }
