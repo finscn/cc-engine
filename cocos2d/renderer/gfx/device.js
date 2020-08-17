@@ -482,7 +482,7 @@ function bindInstance (gl, program) {
 /**
  * _commitVertexBuffers
  */
-_commitVertexBuffers(gl, cur, next, isInstance) {
+function _commitVertexBuffers(device, gl, cur, next, isInstance) {
   let attrsDirty = false;
 
   // nothing changed for vertex buffer
@@ -507,8 +507,8 @@ _commitVertexBuffers(gl, cur, next, isInstance) {
   }
 
   if (attrsDirty) {
-    for (let i = 0; i < this._caps.maxVertexAttribs; ++i) {
-      this._newAttributes[i] = 0;
+    for (let i = 0; i < device._caps.maxVertexAttribs; ++i) {
+      device._newAttributes[i] = 0;
     }
 
     for (let i = 0; i < next.maxStream + 1; ++i) {
@@ -531,11 +531,11 @@ _commitVertexBuffers(gl, cur, next, isInstance) {
           continue;
         }
 
-        if (this._enabledAttributes[attr.location] === 0) {
+        if (device._enabledAttributes[attr.location] === 0) {
           gl.enableVertexAttribArray(attr.location);
-          this._enabledAttributes[attr.location] = 1;
+          device._enabledAttributes[attr.location] = 1;
         }
-        this._newAttributes[attr.location] = 1;
+        device._newAttributes[attr.location] = 1;
 
         gl.vertexAttribPointer(
           attr.location,
@@ -547,11 +547,11 @@ _commitVertexBuffers(gl, cur, next, isInstance) {
         );
 
         if (isInstance) {
-          this.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 1);
+          device.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 1);
           // maxLocation = Math.max(attr.location, maxLocation);
         }
         else {
-          this.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 0);
+          device.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 0);
         }
 
       }
@@ -559,10 +559,10 @@ _commitVertexBuffers(gl, cur, next, isInstance) {
 
     if (!isInstance) {
       // disable unused attributes
-      for (let i = 0; i < this._caps.maxVertexAttribs; ++i) {
-        if (this._enabledAttributes[i] !== this._newAttributes[i]) {
+      for (let i = 0; i < device._caps.maxVertexAttribs; ++i) {
+        if (device._enabledAttributes[i] !== device._newAttributes[i]) {
           gl.disableVertexAttribArray(i);
-          this._enabledAttributes[i] = 0;
+          device._enabledAttributes[i] = 0;
         }
       }
     }
