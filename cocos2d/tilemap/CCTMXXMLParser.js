@@ -58,7 +58,7 @@ function uint8ArrayToUint32Array (uint8Arr) {
  */
 /**
  * Properties of the layer info.
- * @property {Object} properties 
+ * @property {Object} properties
  */
 cc.TMXLayerInfo = function () {
     this.properties = {};
@@ -173,7 +173,7 @@ cc.TMXObjectGroupInfo.prototype = {
 
 /**
  * First grid
- * @property {number} firstGid 
+ * @property {number} firstGid
  */
 
 /**
@@ -183,7 +183,7 @@ cc.TMXObjectGroupInfo.prototype = {
 
 /**
  * Margin
- * @property {number} margin 
+ * @property {number} margin
  */
 
 /**
@@ -227,9 +227,9 @@ cc.TMXTilesetInfo.prototype = {
         rect.height = this._tileSize.height;
         gid &= cc.TiledMap.TileFlag.FLIPPED_MASK;
         gid = gid - parseInt(this.firstGid, 10);
-        let max_x = parseInt((this.imageSize.width - this.margin * 2 + this.spacing) / (this._tileSize.width + this.spacing), 10);
-        rect.x = parseInt((gid % max_x) * (this._tileSize.width + this.spacing) + this.margin, 10);
-        rect.y = parseInt(parseInt(gid / max_x, 10) * (this._tileSize.height + this.spacing) + this.margin, 10);
+        let max_x = Math.round((this.imageSize.width - this.margin * 2 + this.spacing) / (this._tileSize.width + this.spacing), 10);
+        rect.x = Math.round((gid % max_x) * (this._tileSize.width + this.spacing) + this.margin, 10);
+        rect.y = Math.round(Math.floor(gid / max_x) * (this._tileSize.height + this.spacing) + this.margin, 10);
         return rect;
     }
 };
@@ -330,57 +330,57 @@ function getPropertyList (node, map) {
 
 /**
  * Properties of the map info.
- * @property {Array}    properties          
+ * @property {Array}    properties
  */
 
 /**
  * Map orientation.
- * @property {Number}   orientation         
+ * @property {Number}   orientation
  */
 
 /**
  * Parent element.
- * @property {Object}   parentElement       
+ * @property {Object}   parentElement
  */
 
 /**
  * Parent GID.
- * @property {Number}   parentGID           
+ * @property {Number}   parentGID
  */
 
 /**
  * Layer attributes.
- * @property {Object}   layerAttrs        
+ * @property {Object}   layerAttrs
  */
 
 /**
  * Is reading storing characters stream.
- * @property {Boolean}  storingCharacters   
+ * @property {Boolean}  storingCharacters
  */
 
 /**
  * Current string stored from characters stream.
- * @property {String}   currentString       
+ * @property {String}   currentString
  */
 
 /**
  * Width of the map
- * @property {Number}   mapWidth            
+ * @property {Number}   mapWidth
  */
 
 /**
  * Height of the map
- * @property {Number}   mapHeight           
+ * @property {Number}   mapHeight
  */
 
 /**
  * Width of a tile
- * @property {Number}   tileWidth           
+ * @property {Number}   tileWidth
  */
 
-/** 
+/**
  * Height of a tile
- * @property {Number}   tileHeight          
+ * @property {Number}   tileHeight
  */
 
 /**
@@ -773,7 +773,7 @@ cc.TMXMapInfo.prototype = {
                     cc.logID(7216, version);
                     break;
                 }
-            }   
+            }
 
             if (orientationStr === "orthogonal")
                 this.orientation = cc.TiledMap.Orientation.ORTHO;
@@ -906,7 +906,7 @@ cc.TMXMapInfo.prototype = {
                         if (!tileset.sourceImage) {
                             cc.errorID(7221, imageName);
                         }
-                        
+
                         let tileSize = cc.size(0, 0);
                         tileSize.width = parseFloat(image.getAttribute('width'));
                         tileSize.height = parseFloat(image.getAttribute('height'));
@@ -995,7 +995,7 @@ cc.TMXMapInfo.prototype = {
         }
         return imageLayer;
     },
- 
+
     _parseLayer (selLayer) {
         let data = selLayer.getElementsByTagName('data')[0];
 
