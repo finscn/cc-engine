@@ -61,9 +61,9 @@ let TiledLayer = cc.Class({
     // because TiledLayer not create or maintains the sgNode by itself.
     extends: RenderComponent,
 
-    editor: {
-        inspector: 'packages://inspector/inspectors/comps/tiled-layer.js',
-    },
+    // editor: {
+    //     inspector: 'packages://inspector/inspectors/comps/tiled-layer.js',
+    // },
 
     ctor () {
         this._userNodeGrid = {};// [row][col] = {count: 0, nodesList: []};
@@ -123,6 +123,44 @@ let TiledLayer = cc.Class({
 
         // switch of culling
         this._enableCulling = cc.macro.ENABLE_TILEDMAP_CULLING;
+    },
+
+    properties: {
+        _useInstance: {
+            default: false,
+            type: cc.Boolean
+        },
+
+        useInstance : {
+            get () {
+                return this._useInstance;
+            },
+            set (value) {
+                this._useInstance = value;
+                this._activateMaterial();
+            },
+            type: cc.Boolean
+        },
+
+        instanceMaterial: {
+            default: null,
+            type: cc.Material,
+            visible: function () { return this.useInstance;}
+        },
+
+        materials: {
+            get () {
+                return this._materials;
+            },
+            set (val) {
+                this._materials = val;
+                this._activateMaterial();
+            },
+            type: [Material],
+            displayName: 'Materials',
+            animatable: false,
+            visible: function () { return !this.useInstance;}
+        }
     },
 
     _hasTiledNode () {
@@ -1361,13 +1399,19 @@ let TiledLayer = cc.Class({
 
         let texture = this._textures[tilesetIdx];
         let material = this._materials[index];
-        if (!material) {
-            material = Material.getBuiltinMaterial('2d-sprite');
-        }
-        material = MaterialVariant.create(material, this);
 
-        material.define('CC_USE_MODEL', true);
-        material.setProperty('texture', texture);
+        if (this.useInstance && CC_BUILD) {
+            material = this.instanceMaterial;
+            material = MaterialVariant.create(material, this);
+            material.setProperty('texture3', texture);
+        } else {
+            if (!material) {
+                material = Material.getBuiltinMaterial('2d-sprite');
+            }
+            material = MaterialVariant.create(material, this);
+            material.define('CC_USE_MODEL', true);
+            material.setProperty('texture', texture);
+        }
 
         this._materials[index] = material;
         texIdMatIdx[tilesetIdx] = index;

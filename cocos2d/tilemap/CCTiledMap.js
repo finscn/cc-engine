@@ -29,6 +29,7 @@ require('./CCTiledMapAsset');
 require('./CCTiledLayer');
 require('./CCTiledTile');
 require('./CCTiledObjectGroup');
+require('../core/assets/CCSpriteFrame');
 
 /**
  * !#en The orientation of tiled map.
@@ -345,10 +346,25 @@ let TiledMap = cc.Class({
             set (value, force) {
                 if (this._tmxFile !== value || (CC_EDITOR && force)) {
                     this._tmxFile = value;
-                    this._applyFile();
+                    this._applyFile(true);
                 }
             },
             type: cc.TiledMapAsset
+        },
+
+        _spriteFrames: {
+            default: [],
+            type: cc.SpriteFrame
+        },
+        spriteFrames : {
+            get () {
+                return this._spriteFrames;
+            },
+            set (value) {
+                this._spriteFrames = value;
+                _applyFile(false);
+            },
+            type: [cc.SpriteFrame]
         }
     },
 
@@ -534,7 +550,7 @@ let TiledMap = cc.Class({
     __preload () {
         if (this._tmxFile) {
             // refresh layer entities
-            this._applyFile();
+            this._applyFile(false);
         }
     },
 
@@ -546,22 +562,27 @@ let TiledMap = cc.Class({
         this.node.off(cc.Node.EventType.ANCHOR_CHANGED, this._syncAnchorPoint, this);
     },
 
-    _applyFile () {
+    _applyFile (fromFile) {
         let file = this._tmxFile;
         if (file) {
-            let texValues = file.textures;
+            // let texValues = file.textures;
             let texKeys = file.textureNames;
             let texSizes = file.textureSizes;
+            let spfValues = file.spriteFrames;
             let textures = {};
             let textureSizes = {};
-            for (let i = 0; i < texValues.length; ++i) {
+            for (let i = 0; i < spfValues.length; ++i) {
                 let texName = texKeys[i];
-                textures[texName] = texValues[i];
+                // textures[texName] = texValues[i];
                 textureSizes[texName] = texSizes[i];
+                if (fromFile) {
+                    this._spriteFrames[i] = spfValues[i];
+                }
+                textures[texName] = this._spriteFrames[i].getTexture();
             }
 
             let imageLayerTextures = {};
-            texValues = file.imageLayerTextures;
+            let texValues = file.imageLayerTextures;
             texKeys = file.imageLayerTextureNames;
             for (let i = 0; i < texValues.length; ++i) {
                 imageLayerTextures[texKeys[i]] = texValues[i];
@@ -665,7 +686,7 @@ let TiledMap = cc.Class({
         for (let i = 0, l = tilesets.length; i < l; ++i) {
             let tilesetInfo = tilesets[i];
             if (!tilesetInfo) continue;
-            cc.TiledMap.fillTextureGrids(tilesetInfo, texGrids, i);
+            cc.TiledMap.fillTextureGrids(tilesetInfo, texGrids, i, this._spriteFrames[i]);
         }
         this._fillAniGrids(texGrids, animations);
 
@@ -852,8 +873,9 @@ cc.TiledMap.loadAllTextures = function (textures, loadedCallback) {
     }
 };
 
-cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId) {
+cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spf) {
     let tex = tileset.sourceImage;
+    tex = spf.getTexture();
 
     if (!tileset.imageSize.width || !tileset.imageSize.height) {
         tileset.imageSize.width = tex.width;
@@ -900,15 +922,24 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId) {
             t: 0, l: 0, r: 0, b: 0,
             gid: gid,
         };
-        tileset.rectForGID(gid, grid);
+        tileset.rectForGID(gid, grid, imageW, imageH);
         grid.x += texelCorrect;
         grid.y += texelCorrect;
         grid.width -= texelCorrect*2;
         grid.height -= texelCorrect*2;
-        grid.t = (grid.y) / imageH;
-        grid.l = (grid.x) / imageW;
-        grid.r = (grid.x + grid.width) / imageW;
-        grid.b = (grid.y + grid.height) / imageH;
+
+        if (spf._rotated) {
+            // grid.t = spf.uv[4];
+            // grid.b = spf.uv[0];
+            // grid.l = spf.uv[1];
+            // grid.r = spf.uv[3];
+            console.error('Atlas do not rotate!');
+        } else {
+            grid.t = spf.uv[5] + (grid.y) / imageH;
+            grid.b = spf.uv[1] - (grid.y) / imageH;
+            grid.l = spf.uv[0] + (grid.x) / imageW;
+            grid.r = spf.uv[2] - (grid.x) / imageW;
+        }
         texGrids[gid] = grid;
     }
 };
