@@ -1310,9 +1310,8 @@ let TiledLayer = cc.Class({
 
         tilesetIndexArr.length = 0;
         for (let i = 0; i < tiles.length; i++) {
-            let gid = tiles[i];
+            let gid = ((tiles[i] & FLIPPED_MASK) >>> 0);
             if (gid === 0) continue;
-            gid = ((gid & FLIPPED_MASK) >>> 0);
             let grid = texGrids[gid];
             if (!grid) {
                 cc.error("CCTiledLayer:_traverseAllGrid grid is null, gid is:", gid);
