@@ -638,6 +638,16 @@ let TiledMap = cc.Class({
                         textures[frameName] = frame.getTexture();
                     }
                 }
+
+                for (let frameName in allSpriteFrames) {
+                    let frame = allSpriteFrames[frameName];
+                    if (!textures[frameName]){
+                        let texture = frame.getTexture();
+                        textureSizes[frameName] = cc.size(texture.width, texture.height);
+                        this._spriteFrames.push(frame);
+                        textures[frameName] = texture;
+                    }
+                }
             }
 
             let imageLayerTextures = {};
@@ -958,7 +968,7 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, name
         tex = spFrame.getTexture();
     }
 
-    if (!tileset.imageSize.width || !tileset.imageSize.height) {
+    if (spFrame || !tileset.imageSize.width || !tileset.imageSize.height) {
         tileset.imageSize.width = tex.width;
         tileset.imageSize.height = tex.height;
     }
@@ -968,21 +978,24 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, name
         imageW = tex.width,
         imageH = tex.height,
         spacing = tileset.spacing,
-        margin = tileset.margin,
+        margin = tileset.margin;
 
-        cols = Math.floor((imageW - margin * 2 + spacing) / (tw + spacing)),
-        rows = Math.floor((imageH - margin * 2 + spacing) / (th + spacing)),
-        count = rows * cols,
+    let count = 1;
+    if (!spFrame) {
+        let cols = Math.floor((imageW - margin * 2 + spacing) / (tw + spacing));
+        let rows = Math.floor((imageH - margin * 2 + spacing) / (th + spacing));
+        count = rows * cols;
+        if (count <= 0) {
+            count = 1;
+        }
+    }
 
-        gid = tileset.firstGid,
+    let gid = tileset.firstGid,
         grid = null,
         override = texGrids[gid] ? true : false,
         texelCorrect = cc.macro.FIX_ARTIFACTS_BY_STRECHING_TEXEL_TMX ? 0.5 : 0;
 
     // Tiledmap may not be partitioned into blocks, resulting in a count value of 0
-    if (count <= 0) {
-        count = 1;
-    }
 
     let maxGid = tileset.firstGid + count;
     for (; gid < maxGid; ++gid) {
@@ -1010,28 +1023,30 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, name
             rotated: false,
             gid: gid,
         };
-        tileset.rectForGID(gid, grid, imageW, imageH);
+        tileset.rectForGID(gid, grid);
         grid.x += texelCorrect;
         grid.y += texelCorrect;
         grid.width -= texelCorrect*2;
         grid.height -= texelCorrect*2;
 
         if (!spFrame) {
-            grid.l = (grid.x) / imageW;
-            grid.t = (grid.y) / imageH;
+            grid.l = grid.x / imageW;
+            grid.t = grid.y / imageH;
             grid.r = (grid.x + grid.width) / imageW;
             grid.b = (grid.y + grid.height) / imageH;
         } else if (spFrame._rotated) {
             grid.rotated = true;
-            grid.l = spFrame.uv[0] + (grid.x) / imageW;
-            grid.t = spFrame.uv[1] + (grid.y) / imageH;
-            grid.r = spFrame.uv[4] - (grid.x) / imageW;
-            grid.b = spFrame.uv[3] - (grid.y) / imageH;
+            grid._name = spFrame.name;
+            grid.l = spFrame.uv[0] + texelCorrect / imageW;
+            grid.t = spFrame.uv[1] + texelCorrect / imageH;
+            grid.r = spFrame.uv[4] - texelCorrect / imageW;
+            grid.b = spFrame.uv[3] - texelCorrect / imageH;
         } else {
-            grid.l = spFrame.uv[0] + (grid.x) / imageW;
-            grid.t = spFrame.uv[5] + (grid.y) / imageH;
-            grid.r = spFrame.uv[2] - (grid.x) / imageW;
-            grid.b = spFrame.uv[1] - (grid.y) / imageH;
+            grid._name = spFrame.name;
+            grid.l = spFrame.uv[0] + texelCorrect / imageW;
+            grid.t = spFrame.uv[5] + texelCorrect / imageH;
+            grid.r = spFrame.uv[2] - texelCorrect / imageW;
+            grid.b = spFrame.uv[1] - texelCorrect / imageH;
         }
 
         texGrids[gid] = grid;
