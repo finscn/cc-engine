@@ -997,6 +997,9 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, mapp
             tileset: tileset,
             x: 0, y: 0, width: tw, height: th,
             t: 0, l: 0, r: 0, b: 0,
+            offsetX: 0,
+            offsetY: 0,
+            rotated: false,
             gid: gid,
         };
         tileset.rectForGID(gid, grid, imageW, imageH);
@@ -1005,18 +1008,24 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, mapp
         grid.width -= texelCorrect*2;
         grid.height -= texelCorrect*2;
 
-        if (spFrame._rotated) {
-            // grid.t = spFrame.uv[4];
-            // grid.b = spFrame.uv[0];
-            // grid.l = spFrame.uv[1];
-            // grid.r = spFrame.uv[3];
-            console.error('Atlas do not rotate!');
-        } else {
-            grid.t = spFrame.uv[5] + (grid.y) / imageH;
-            grid.b = spFrame.uv[1] - (grid.y) / imageH;
+        if (!spFrame) {
+            grid.l = (grid.x) / imageW;
+            grid.t = (grid.y) / imageH;
+            grid.r = (grid.x + grid.width) / imageW;
+            grid.b = (grid.y + grid.height) / imageH;
+        } else if (spFrame._rotated) {
+            grid.rotated = true;
             grid.l = spFrame.uv[0] + (grid.x) / imageW;
+            grid.t = spFrame.uv[1] + (grid.y) / imageH;
+            grid.r = spFrame.uv[4] - (grid.x) / imageW;
+            grid.b = spFrame.uv[3] - (grid.y) / imageH;
+        } else {
+            grid.l = spFrame.uv[0] + (grid.x) / imageW;
+            grid.t = spFrame.uv[5] + (grid.y) / imageH;
             grid.r = spFrame.uv[2] - (grid.x) / imageW;
+            grid.b = spFrame.uv[1] - (grid.y) / imageH;
         }
+
         texGrids[gid] = grid;
 
         if (spFrame && mapping) {
