@@ -221,13 +221,13 @@ cc.TMXTilesetInfo.prototype = {
      * @param {Number} gid
      * @return {Rect}
      */
-    rectForGID (gid, result) {
+    rectForGID (gid, result, tilesetW) {
         let rect = result || cc.rect(0, 0, 0, 0);
         rect.width = this._tileSize.width;
         rect.height = this._tileSize.height;
         gid &= cc.TiledMap.TileFlag.FLIPPED_MASK;
         gid = gid - parseInt(this.firstGid, 10);
-        let max_x = Math.round((this.imageSize.width - this.margin * 2 + this.spacing) / (this._tileSize.width + this.spacing));
+        let max_x = Math.round(( tilesetW - this.margin * 2 + this.spacing) / (this._tileSize.width + this.spacing));
         rect.x = Math.round((gid % max_x) * (this._tileSize.width + this.spacing) + this.margin, 10);
         rect.y = Math.round(Math.floor(gid / max_x) * (this._tileSize.height + this.spacing) + this.margin, 10);
         return rect;

@@ -954,13 +954,22 @@ cc.TiledMap.getShortName = function (name) {
 
 cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, nameToGID) {
     let tex = tileset.sourceImage;
-    if (spFrame) {
+
+    if (!tex && spFrame) {
         tex = spFrame.getTexture();
     }
 
-    if (spFrame || !tileset.imageSize.width || !tileset.imageSize.height) {
+    if (!tileset.imageSize.width || !tileset.imageSize.height) {
         tileset.imageSize.width = tex.width;
         tileset.imageSize.height = tex.height;
+    }
+
+    if (spFrame) {
+        tilesetW = spFrame._originalSize.width;
+        tilesetH = spFrame._originalSize.height;
+    } else {
+        tilesetW = tileset.imageSize.width;
+        tilesetH = tileset.imageSize.height;
     }
 
     let tw = tileset._tileSize.width,
@@ -970,14 +979,12 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, name
         spacing = tileset.spacing,
         margin = tileset.margin;
 
-    let count = 1;
-    if (!spFrame) {
-        let cols = Math.floor((imageW - margin * 2 + spacing) / (tw + spacing));
-        let rows = Math.floor((imageH - margin * 2 + spacing) / (th + spacing));
-        count = rows * cols;
-        if (count <= 0) {
-            count = 1;
-        }
+
+    let cols = Math.floor((tilesetW - margin * 2 + spacing) / (tw + spacing));
+    let rows = Math.floor((tilesetH - margin * 2 + spacing) / (th + spacing));
+    let count = rows * cols;
+    if (count <= 0) {
+        count = 1;
     }
 
     let gid = tileset.firstGid,
@@ -1013,13 +1020,13 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, name
             rotated: false,
             gid: gid,
         };
-        tileset.rectForGID(gid, grid);
+        tileset.rectForGID(gid, grid, tilesetW);
         grid.x += texelCorrect;
         grid.y += texelCorrect;
         grid.width -= texelCorrect*2;
         grid.height -= texelCorrect*2;
 
-        if (!spFrame) {
+        if (!spFrame || count > 1) {
             grid.l = grid.x / imageW;
             grid.t = grid.y / imageH;
             grid.r = (grid.x + grid.width) / imageW;
