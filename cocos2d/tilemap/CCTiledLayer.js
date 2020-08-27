@@ -1016,8 +1016,8 @@ let TiledLayer = cc.Class({
         // tileOffset is tileset offset which is related to each grid
         // tileOffset coordinate system's y axis is opposite with engine's y axis.
         tileOffset = grid.tileset.tileOffset;
-        left += this._offset.x + tileOffset.x + (grid.offsetX || 0);
-        bottom += this._offset.y - tileOffset.y + (grid.offsetY || 0);
+        left += this._offset.x + tileOffset.x + grid.offsetX;
+        bottom += this._offset.y - tileOffset.y + grid.offsetY;
 
         topBorder = -tileOffset.y + grid.tileset._tileSize.height - mapth;
         topBorder = topBorder < 0 ? 0 : topBorder;
@@ -1435,18 +1435,16 @@ let TiledLayer = cc.Class({
             material.setProperty('texture', texture);
         }
 
-        if (this._premultiplyAlpha) {
-            material.setBlend(
-                true,
-                cc.gfx.BLEND_FUNC_ADD,
-                cc.gfx.BLEND_ONE,
-                cc.gfx.BLEND_ONE_MINUS_SRC_ALPHA,
-                cc.gfx.BLEND_FUNC_ADD,
-                cc.gfx.BLEND_ONE,
-                cc.gfx.BLEND_ONE_MINUS_SRC_ALPHA,
-                0xFFFFFFFF,
-                0);
-        }
+        let srcBlendFactor = this._premultipliedAlpha ? cc.gfx.BLEND_ONE : cc.gfx.BLEND_SRC_ALPHA;
+        let dstBlendFactor = cc.gfx.BLEND_ONE_MINUS_SRC_ALPHA;
+
+        material.setBlend(
+            true,
+            cc.gfx.BLEND_FUNC_ADD,
+            srcBlendFactor, dstBlendFactor,
+            cc.gfx.BLEND_FUNC_ADD,
+            srcBlendFactor, dstBlendFactor
+        );
 
         this._materials[index] = material;
         texIdMatIdx[tilesetIdx] = index;

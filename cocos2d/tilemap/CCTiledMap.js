@@ -571,10 +571,6 @@ let TiledMap = cc.Class({
             return;
         }
 
-        this._spriteFrames = [];
-        this.spriteFramesCache = {};
-        this._nameGIDMapping = {};
-
         if (this._tileAtlases.length > 0 || this._tileFrames.length > 0) {
             this._applyFile(false);
         } else {
@@ -592,6 +588,11 @@ let TiledMap = cc.Class({
     },
 
     _applyFile (fromFile) {
+
+        this._spriteFrames = [];
+        this.spriteFramesCache = {};
+        this.nameToGID = {};
+
         let file = this._tmxFile;
         if (file) {
             // let texValues = file.textures;
@@ -614,27 +615,26 @@ let TiledMap = cc.Class({
                     }
                 }
             } else {
-                let customSpriteFrames = {};
+                let allSpriteFrames = this.spriteFramesCache;
 
                 this._tileAtlases.forEach(function(atlas) {
                     let sfs = atlas.getSpriteFrames();
                     sfs.forEach(function(sf) {
-                        customSpriteFrames[sf.name] = sf;
+                        allSpriteFrames[sf.name] = sf;
                     });
                 });
 
                 let sfs = this._tileFrames;
                 sfs.forEach(function(sf){
-                    customSpriteFrames[sf.name] = sf;
+                    allSpriteFrames[sf.name] = sf;
                 });
 
                 for (let i = 0; i < texKeys.length; ++i) {
                     let frameName = cc.TiledMap.getShortName(texKeys[i]);
                     textureSizes[frameName] = texSizes[i];
-                    let frame = this._tileFrames[i] || customSpriteFrames[frameName] || spfValues[i];
+                    let frame = this._tileFrames[i] || allSpriteFrames[frameName] || spfValues[i];
                     if (frame) {
                         this._spriteFrames[i] = frame;
-                        this.spriteFramesCache[frame.name] = frame;
                         textures[frameName] = frame.getTexture();
                     }
                 }
@@ -753,7 +753,7 @@ let TiledMap = cc.Class({
             if (idx === undefined) {
                 texIdCache[tex._id] = idx = i;
             }
-            cc.TiledMap.fillTextureGrids(tilesetInfo, texGrids, idx, this._spriteFrames[i], this._nameGIDMapping);
+            cc.TiledMap.fillTextureGrids(tilesetInfo, texGrids, idx, this._spriteFrames[i], this.nameToGID);
         }
         this._fillAniGrids(texGrids, animations);
 
@@ -891,7 +891,7 @@ let TiledMap = cc.Class({
     },
 
     getGIDByName (name) {
-        return this._nameGIDMapping[name];
+        return this.nameToGID[name];
     },
 
     update (dt) {
@@ -952,7 +952,7 @@ cc.TiledMap.getShortName = function (name) {
     return name.substring(splashIndex, dotIndex);
 };
 
-cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, mapping) {
+cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, nameToGID) {
     let tex = tileset.sourceImage;
     if (spFrame) {
         tex = spFrame.getTexture();
@@ -994,6 +994,10 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, mapp
             break;
         }
 
+        if (spFrame && nameToGID) {
+            nameToGID[spFrame.name] = gid;
+        }
+
         grid = {
             // record texture id
             texId: texId,
@@ -1031,10 +1035,6 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, mapp
         }
 
         texGrids[gid] = grid;
-
-        if (spFrame && mapping) {
-            mapping[spFrame.name] = gid;
-        }
     }
 };
 
