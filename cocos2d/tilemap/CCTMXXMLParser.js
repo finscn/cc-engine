@@ -848,7 +848,7 @@ cc.TMXMapInfo.prototype = {
                 let multiTextures = images.length > 1;
                 let image = images[0];
                 let firstImageName = image.getAttribute('source');
-                firstImageName.replace(/\\/g, '\/');
+                firstImageName = firstImageName.replace(/\\/g, '\/');
 
                 let tiles = selTileset.getElementsByTagName('tile');
                 let tileCount = tiles && tiles.length || 1;
@@ -885,11 +885,17 @@ cc.TMXMapInfo.prototype = {
                         tileset.margin = tilesetMargin;
                         tileset._tileSize = tilesetSize;
                         tileset.tileOffset = tileOffset;
+
                         tileset.sourceImage = this._textures[firstImageName];
-                        tileset.imageSize = this._textureSizes[firstImageName] || tileset.imageSize;
+                        if (!tileset.sourceImage) {
+                            firstImageName = cc.TiledMap.getShortName(firstImageName);
+                            tileset.sourceImage = this._textures[firstImageName];
+                        }
+
                         if (!tileset.sourceImage) {
                             cc.errorID(7221, firstImageName);
                         }
+                        tileset.imageSize = this._textureSizes[firstImageName] || tileset.imageSize;
                         this.setTilesets(tileset);
                     }
 
@@ -901,8 +907,14 @@ cc.TMXMapInfo.prototype = {
                     if (tileImages && tileImages.length > 0) {
                         image = tileImages[0];
                         let imageName = image.getAttribute('source');
-                        imageName.replace(/\\/g, '\/');
+                        imageName = imageName.replace(/\\/g, '\/');
+
                         tileset.sourceImage = this._textures[imageName];
+                        if (!tileset.sourceImage) {
+                            imageName = cc.TiledMap.getShortName(imageName);
+                            tileset.sourceImage = this._textures[imageName];
+                        }
+
                         if (!tileset.sourceImage) {
                             cc.errorID(7221, imageName);
                         }

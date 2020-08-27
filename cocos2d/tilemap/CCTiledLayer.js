@@ -126,6 +126,22 @@ let TiledLayer = cc.Class({
     },
 
     properties: {
+
+        _premultiplyAlpha: {
+            default: false,
+            type: cc.Boolean
+        },
+        premultiplyAlpha : {
+            get () {
+                return this._premultiplyAlpha;
+            },
+            set (value) {
+                this._premultiplyAlpha = value;
+                this._activateMaterial();
+            },
+            type: cc.Boolean
+        },
+
         _useInstance: {
             default: false,
             type: cc.Boolean
@@ -1266,11 +1282,17 @@ let TiledLayer = cc.Class({
             }
         }
 
+        let texIdCache = {};
         cc.TiledMap.loadAllTextures (textures, function () {
             for (let i = 0, l = tilesets.length; i < l; ++i) {
                 let tilesetInfo = tilesets[i];
                 if (!tilesetInfo) continue;
-                cc.TiledMap.fillTextureGrids(tilesetInfo, texGrids, i);
+
+                let idx = texIdCache[tex._id];
+                if (idx === undefined) {
+                    texIdCache[tex._id] = idx = i;
+                }
+                cc.TiledMap.fillTextureGrids(tilesetInfo, texGrids, idx);
             }
             this._prepareToRender();
         }.bind(this));
@@ -1411,6 +1433,19 @@ let TiledLayer = cc.Class({
             material = MaterialVariant.create(material, this);
             material.define('CC_USE_MODEL', true);
             material.setProperty('texture', texture);
+        }
+
+        if (this._premultiplyAlpha) {
+            material.setBlend(
+                true,
+                cc.gfx.BLEND_FUNC_ADD,
+                cc.gfx.BLEND_ONE,
+                cc.gfx.BLEND_ONE_MINUS_SRC_ALPHA,
+                cc.gfx.BLEND_FUNC_ADD,
+                cc.gfx.BLEND_ONE,
+                cc.gfx.BLEND_ONE_MINUS_SRC_ALPHA,
+                0xFFFFFFFF,
+                0);
         }
 
         this._materials[index] = material;

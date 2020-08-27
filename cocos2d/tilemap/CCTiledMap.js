@@ -268,7 +268,7 @@ let TMXObjectType = cc.Enum({
      * @static
      */
     POLYLINE : 3,
-    
+
     /**
      * @property IMAGE
      * @type {Number}
@@ -316,6 +316,8 @@ let TiledMap = cc.Class({
 
         this._mapSize = cc.size(0, 0);
         this._tileSize = cc.size(0, 0);
+
+        this._preloaded = false;
     },
 
     statics: {
@@ -346,23 +348,38 @@ let TiledMap = cc.Class({
             set (value, force) {
                 if (this._tmxFile !== value || (CC_EDITOR && force)) {
                     this._tmxFile = value;
-                    this._applyFile(true);
+                    (this._preloaded || CC_EDITOR) && this._applyFile(true);
                 }
             },
             type: cc.TiledMapAsset
         },
 
-        _spriteFrames: {
+        _tileAtlases: {
+            default: [],
+            type: cc.SpriteAtlas
+        },
+        tileAtlases : {
+            get () {
+                return this._tileAtlases;
+            },
+            set (value) {
+                this._tileAtlases = value;
+                (this._preloaded || CC_EDITOR) && _applyFile(false);
+            },
+            type: [cc.SpriteAtlas]
+        },
+
+        _tileFrames: {
             default: [],
             type: cc.SpriteFrame
         },
-        spriteFrames : {
+        tileFrames : {
             get () {
-                return this._spriteFrames;
+                return this._tileFrames;
             },
             set (value) {
-                this._spriteFrames = value;
-                _applyFile(false);
+                this._tileFrames = value;
+                (this._preloaded || CC_EDITOR) && _applyFile(false);
             },
             type: [cc.SpriteFrame]
         }
@@ -548,10 +565,21 @@ let TiledMap = cc.Class({
     },
 
     __preload () {
-        if (this._tmxFile) {
-            // refresh layer entities
-            this._applyFile(false);
+        this._preloaded = true;
+
+        if (!this._tmxFile) {
+            return;
         }
+
+        this._spriteFrames = [];
+        this._nameGIDMapping = {};
+
+        if (this._tileAtlases.length > 0 || this._tileFrames.length > 0) {
+            this._applyFile(false);
+        } else {
+            this._applyFile(true);
+        }
+
     },
 
     onEnable () {
@@ -571,14 +599,41 @@ let TiledMap = cc.Class({
             let spfValues = file.spriteFrames;
             let textures = {};
             let textureSizes = {};
-            for (let i = 0; i < spfValues.length; ++i) {
-                let texName = texKeys[i];
-                // textures[texName] = texValues[i];
-                textureSizes[texName] = texSizes[i];
-                if (fromFile) {
+
+            if (fromFile) {
+                for (let i = 0; i < texKeys.length; ++i) {
+                    let texName = texKeys[i];
+                    // textures[texName] = texValues[i];
+                    textureSizes[texName] = texSizes[i];
                     this._spriteFrames[i] = spfValues[i];
+                    if (this._spriteFrames[i]) {
+                        textures[texName] = this._spriteFrames[i].getTexture();
+                    }
                 }
-                textures[texName] = this._spriteFrames[i].getTexture();
+            } else {
+                let customSpriteFrames = {};
+
+                this._tileAtlases.forEach(function(atlas) {
+                    let sfs = atlas.getSpriteFrames();
+                    sfs.forEach(function(sf) {
+                        customSpriteFrames[sf.name] = sf;
+                    });
+                });
+
+                let sfs = this._tileFrames;
+                sfs.forEach(function(sf){
+                    customSpriteFrames[sf.name] = sf;
+                });
+
+                for (let i = 0; i < texKeys.length; ++i) {
+                    let frameName = cc.TiledMap.getShortName(texKeys[i]);
+                    textureSizes[frameName] = texSizes[i];
+                    let frame = this._tileFrames[i] || customSpriteFrames[frameName] || spfValues[i];
+                    if (frame) {
+                        this._spriteFrames[i] = frame;
+                        textures[frameName] = frame.getTexture();
+                    }
+                }
             }
 
             let imageLayerTextures = {};
@@ -683,10 +738,18 @@ let TiledMap = cc.Class({
         let texGrids = this._texGrids;
         let animations = this._animations;
         texGrids.length = 0;
+
+        let texIdCache = {};
         for (let i = 0, l = tilesets.length; i < l; ++i) {
             let tilesetInfo = tilesets[i];
             if (!tilesetInfo) continue;
-            cc.TiledMap.fillTextureGrids(tilesetInfo, texGrids, i, this._spriteFrames[i]);
+            let sf = this._spriteFrames[i];
+            let tex = sf.getTexture();
+            let idx = texIdCache[tex._id];
+            if (idx === undefined) {
+                texIdCache[tex._id] = idx = i;
+            }
+            cc.TiledMap.fillTextureGrids(tilesetInfo, texGrids, idx, this._spriteFrames[i], this._nameGIDMapping);
         }
         this._fillAniGrids(texGrids, animations);
 
@@ -737,7 +800,7 @@ let TiledMap = cc.Class({
                     if (!layer) {
                         layer = child.addComponent(cc.TiledLayer);
                     }
-                    
+
                     layer._init(layerInfo, mapInfo, tilesets, textures, texGrids);
 
                     // tell the layerinfo to release the ownership of the tiles map.
@@ -762,7 +825,7 @@ let TiledMap = cc.Class({
                     if (!image) {
                         image = child.addComponent(cc.Sprite);
                     }
-                    
+
                     let spf = image.spriteFrame || new cc.SpriteFrame();
                     spf.setTexture(texture);
                     image.spriteFrame = spf;
@@ -823,6 +886,10 @@ let TiledMap = cc.Class({
         }.bind(this));
     },
 
+    getGIDByName (name) {
+        return this._nameGIDMapping[name];
+    },
+
     update (dt) {
         let animations = this._animations;
         let texGrids = this._texGrids;
@@ -873,9 +940,19 @@ cc.TiledMap.loadAllTextures = function (textures, loadedCallback) {
     }
 };
 
-cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spf) {
+cc.TiledMap.getShortName = function (name) {
+    name = name.replace(/\\/g, '\/');
+    let splashIndex = name.lastIndexOf("/") + 1;
+    let dotIndex = name.lastIndexOf(".");
+    dotIndex = dotIndex < 0 ? name.length : dotIndex;
+    return name.substring(splashIndex, dotIndex);
+};
+
+cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, mapping) {
     let tex = tileset.sourceImage;
-    tex = spf.getTexture();
+    if (spFrame) {
+        tex = spFrame.getTexture();
+    }
 
     if (!tileset.imageSize.width || !tileset.imageSize.height) {
         tileset.imageSize.width = tex.width;
@@ -889,8 +966,8 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spf) {
         spacing = tileset.spacing,
         margin = tileset.margin,
 
-        cols = Math.floor((imageW - margin*2 + spacing) / (tw + spacing)),
-        rows = Math.floor((imageH - margin*2 + spacing) / (th + spacing)),
+        cols = Math.floor((imageW - margin * 2 + spacing) / (tw + spacing)),
+        rows = Math.floor((imageH - margin * 2 + spacing) / (th + spacing)),
         count = rows * cols,
 
         gid = tileset.firstGid,
@@ -915,7 +992,7 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spf) {
 
         grid = {
             // record texture id
-            texId: texId, 
+            texId: texId,
             // record belong to which tileset
             tileset: tileset,
             x: 0, y: 0, width: tw, height: th,
@@ -928,19 +1005,23 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spf) {
         grid.width -= texelCorrect*2;
         grid.height -= texelCorrect*2;
 
-        if (spf._rotated) {
-            // grid.t = spf.uv[4];
-            // grid.b = spf.uv[0];
-            // grid.l = spf.uv[1];
-            // grid.r = spf.uv[3];
+        if (spFrame._rotated) {
+            // grid.t = spFrame.uv[4];
+            // grid.b = spFrame.uv[0];
+            // grid.l = spFrame.uv[1];
+            // grid.r = spFrame.uv[3];
             console.error('Atlas do not rotate!');
         } else {
-            grid.t = spf.uv[5] + (grid.y) / imageH;
-            grid.b = spf.uv[1] - (grid.y) / imageH;
-            grid.l = spf.uv[0] + (grid.x) / imageW;
-            grid.r = spf.uv[2] - (grid.x) / imageW;
+            grid.t = spFrame.uv[5] + (grid.y) / imageH;
+            grid.b = spFrame.uv[1] - (grid.y) / imageH;
+            grid.l = spFrame.uv[0] + (grid.x) / imageW;
+            grid.r = spFrame.uv[2] - (grid.x) / imageW;
         }
         texGrids[gid] = grid;
+
+        if (spFrame && mapping) {
+            mapping[spFrame.name] = gid;
+        }
     }
 };
 
