@@ -638,16 +638,6 @@ let TiledMap = cc.Class({
                         textures[frameName] = frame.getTexture();
                     }
                 }
-
-                for (let frameName in allSpriteFrames) {
-                    let frame = allSpriteFrames[frameName];
-                    if (!textures[frameName]){
-                        let texture = frame.getTexture();
-                        textureSizes[frameName] = cc.size(texture.width, texture.height);
-                        this._spriteFrames.push(frame);
-                        textures[frameName] = texture;
-                    }
-                }
             }
 
             let imageLayerTextures = {};
