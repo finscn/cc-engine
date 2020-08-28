@@ -873,6 +873,12 @@ cc.TMXMapInfo.prototype = {
 
                 // parse tile offset
                 let firstTileOffset = selTileset.getElementsByTagName('tileoffset')[0];
+                let tileOffsetX = 0;
+                let tileOffsetY = 0;
+                if (firstTileOffset) {
+                    tileOffsetX = parseFloat(firstTileOffset.getAttribute('x')) || 0;
+                    tileOffsetY = parseFloat(firstTileOffset.getAttribute('y')) || 0;
+                }
 
                 let tileset = null;
                 for (let tileIdx = 0; tileIdx < tileCount; tileIdx++) {
@@ -880,13 +886,11 @@ cc.TMXMapInfo.prototype = {
                         tileset = new cc.TMXTilesetInfo();
                         tileset.name = tilesetName;
                         tileset.firstGid = fgid;
+                        tileset.tileOffset.x = tileOffsetX;
+                        tileset.tileOffset.y = tileOffsetY;
 
                         tileset.collection = collection;
                         if (!collection) {
-                            if (firstTileOffset) {
-                                tileset.tileOffset.x = parseFloat(firstTileOffset.getAttribute('width')) || 0;
-                                tileset.tileOffset.y = parseFloat(firstTileOffset.getAttribute('height')) || 0;
-                            }
 
                             tileset.imageName = firstImageName;
                             tileset.imageSize.width = parseFloat(firstImage.getAttribute('width')) || 0;

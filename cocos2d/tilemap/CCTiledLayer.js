@@ -981,7 +981,7 @@ let TiledLayer = cc.Class({
         // tileOffset coordinate system's y axis is opposite with engine's y axis.
         tileOffset = grid.tileset.tileOffset;
         left += this._offset.x + tileOffset.x + grid.offsetX;
-        bottom += this._offset.y - tileOffset.y + grid.offsetY;
+        bottom += this._offset.y - tileOffset.y - grid.offsetY;
 
         topBorder = -tileOffset.y + grid.tileset._tileSize.height - mapth;
         topBorder = topBorder < 0 ? 0 : topBorder;
