@@ -953,38 +953,32 @@ cc.TiledMap.getShortName = function (name) {
 };
 
 cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, nameToGID) {
-    let tex = tileset.sourceImage;
 
-    if (!tex && spFrame) {
-        tex = spFrame.getTexture();
-    }
+    let tex = spFrame ? spFrame.getTexture() : tileset.sourceImage;
+
+    let collection = tileset.collection;
 
     if (!tileset.imageSize.width || !tileset.imageSize.height) {
-        tileset.imageSize.width = tex.width;
-        tileset.imageSize.height = tex.height;
+        let sourceImage = tileset.sourceImage;
+        tileset.imageSize.width = sourceImage.width;
+        tileset.imageSize.height = sourceImage.height;
     }
 
-    if (spFrame) {
-        tilesetW = spFrame._originalSize.width;
-        tilesetH = spFrame._originalSize.height;
-    } else {
-        tilesetW = tileset.imageSize.width;
-        tilesetH = tileset.imageSize.height;
-    }
+    let imageWidth = tileset.imageSize.width;
+    let imageHeight = tileset.imageSize.height;
 
     let tw = tileset._tileSize.width,
-        th = tileset._tileSize.height,
-        imageW = tex.width,
-        imageH = tex.height,
-        spacing = tileset.spacing,
+        th = tileset._tileSize.height;
+    let texWidth = tex.width,
+        texHeight = tex.height;
+    let spacing = tileset.spacing,
         margin = tileset.margin;
 
-
-    let cols = Math.floor((tilesetW - margin * 2 + spacing) / (tw + spacing));
-    let rows = Math.floor((tilesetH - margin * 2 + spacing) / (th + spacing));
-    let count = rows * cols;
-    if (count <= 0) {
-        count = 1;
+    let count = 1;
+    if (!collection){
+        let cols = Math.floor((imageWidth - margin * 2 + spacing) / (tw + spacing));
+        let rows = Math.floor((imageHeight - margin * 2 + spacing) / (th + spacing));
+        count = Math.max(1, rows * cols);
     }
 
     let gid = tileset.firstGid,
@@ -1020,30 +1014,30 @@ cc.TiledMap.fillTextureGrids = function (tileset, texGrids, texId, spFrame, name
             rotated: false,
             gid: gid,
         };
-        tileset.rectForGID(gid, grid, tilesetW);
+        tileset.rectForGID(gid, grid);
         grid.x += texelCorrect;
         grid.y += texelCorrect;
         grid.width -= texelCorrect*2;
         grid.height -= texelCorrect*2;
 
         if (!spFrame || count > 1) {
-            grid.l = grid.x / imageW;
-            grid.t = grid.y / imageH;
-            grid.r = (grid.x + grid.width) / imageW;
-            grid.b = (grid.y + grid.height) / imageH;
+            grid.l = grid.x / texWidth;
+            grid.t = grid.y / texHeight;
+            grid.r = (grid.x + grid.width) / texWidth;
+            grid.b = (grid.y + grid.height) / texHeight;
         } else if (spFrame._rotated) {
             grid.rotated = true;
             grid._name = spFrame.name;
-            grid.l = spFrame.uv[0] + texelCorrect / imageW;
-            grid.t = spFrame.uv[1] + texelCorrect / imageH;
-            grid.r = spFrame.uv[4] - texelCorrect / imageW;
-            grid.b = spFrame.uv[3] - texelCorrect / imageH;
+            grid.l = spFrame.uv[0] + texelCorrect / texWidth;
+            grid.t = spFrame.uv[1] + texelCorrect / texHeight;
+            grid.r = spFrame.uv[4] - texelCorrect / texWidth;
+            grid.b = spFrame.uv[3] - texelCorrect / texHeight;
         } else {
             grid._name = spFrame.name;
-            grid.l = spFrame.uv[0] + texelCorrect / imageW;
-            grid.t = spFrame.uv[5] + texelCorrect / imageH;
-            grid.r = spFrame.uv[2] - texelCorrect / imageW;
-            grid.b = spFrame.uv[1] - texelCorrect / imageH;
+            grid.l = spFrame.uv[0] + texelCorrect / texWidth;
+            grid.t = spFrame.uv[5] + texelCorrect / texHeight;
+            grid.r = spFrame.uv[2] - texelCorrect / texWidth;
+            grid.b = spFrame.uv[1] - texelCorrect / texHeight;
         }
 
         texGrids[gid] = grid;

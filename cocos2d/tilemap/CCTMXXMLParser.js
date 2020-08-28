@@ -207,11 +207,16 @@ cc.TMXTilesetInfo = function () {
     // Texture containing the tiles (should be sprite sheet / texture atlas)
     this.sourceImage = null;
     // Size in pixels of the image
+
+    this.imageName = null;
+
     this.imageSize = cc.size(0, 0);
 
     this.tileOffset = cc.v2(0, 0);
 
     this._tileSize = cc.size(0, 0);
+
+    this.collection = false;
 };
 
 cc.TMXTilesetInfo.prototype = {
@@ -221,13 +226,13 @@ cc.TMXTilesetInfo.prototype = {
      * @param {Number} gid
      * @return {Rect}
      */
-    rectForGID (gid, result, tilesetW) {
+    rectForGID (gid, result) {
         let rect = result || cc.rect(0, 0, 0, 0);
         rect.width = this._tileSize.width;
         rect.height = this._tileSize.height;
         gid &= cc.TiledMap.TileFlag.FLIPPED_MASK;
         gid = gid - parseInt(this.firstGid, 10);
-        let max_x = Math.round(( tilesetW - this.margin * 2 + this.spacing) / (this._tileSize.width + this.spacing));
+        let max_x = Math.round(( this.imageSize.width - this.margin * 2 + this.spacing) / (this._tileSize.width + this.spacing));
         rect.x = Math.round((gid % max_x) * (this._tileSize.width + this.spacing) + this.margin, 10);
         rect.y = Math.round(Math.floor(gid / max_x) * (this._tileSize.height + this.spacing) + this.margin, 10);
         return rect;
@@ -845,9 +850,9 @@ cc.TMXMapInfo.prototype = {
                 }
             } else {
                 let images = selTileset.getElementsByTagName('image');
-                let multiTextures = images.length > 1;
-                let image = images[0];
-                let firstImageName = image.getAttribute('source');
+                let collection = images.length > 1;
+                let firstImage = images[0];
+                let firstImageName = firstImage.getAttribute('source');
                 firstImageName = firstImageName.replace(/\\/g, '\/');
 
                 let tiles = selTileset.getElementsByTagName('tile');
@@ -867,62 +872,72 @@ cc.TMXMapInfo.prototype = {
                 tilesetSize.height = parseFloat(selTileset.getAttribute('tileheight'));
 
                 // parse tile offset
-                let offset = selTileset.getElementsByTagName('tileoffset')[0];
-                let tileOffset = cc.v2(0, 0);
-                if (offset) {
-                    tileOffset.x = parseFloat(offset.getAttribute('x'));
-                    tileOffset.y = parseFloat(offset.getAttribute('y'));
-                }
+                let firstTileOffset = selTileset.getElementsByTagName('tileoffset')[0];
 
                 let tileset = null;
                 for (let tileIdx = 0; tileIdx < tileCount; tileIdx++) {
-                    if (!tileset || multiTextures) {
+                    if (!tileset || collection) {
                         tileset = new cc.TMXTilesetInfo();
                         tileset.name = tilesetName;
                         tileset.firstGid = fgid;
 
+                        tileset.collection = collection;
+                        if (!collection) {
+                            if (firstTileOffset) {
+                                tileset.tileOffset.x = parseFloat(firstTileOffset.getAttribute('width')) || 0;
+                                tileset.tileOffset.y = parseFloat(firstTileOffset.getAttribute('height')) || 0;
+                            }
+
+                            tileset.imageName = firstImageName;
+                            tileset.imageSize.width = parseFloat(firstImage.getAttribute('width')) || 0;
+                            tileset.imageSize.height = parseFloat(firstImage.getAttribute('height')) || 0;
+                            tileset.sourceImage = this._textures[firstImageName];
+                            if (!tileset.sourceImage) {
+                                let shortName = cc.TiledMap.getShortName(firstImageName);
+                                tileset.imageName = shortName;
+                                tileset.sourceImage = this._textures[shortName];
+                                if (!tileset.sourceImage) {
+                                    cc.errorID(7221, firstImageName);
+                                }
+                            }
+                        }
+
                         tileset.spacing = tilesetSpacing;
                         tileset.margin = tilesetMargin;
                         tileset._tileSize = tilesetSize;
-                        tileset.tileOffset = tileOffset;
 
-                        tileset.sourceImage = this._textures[firstImageName];
-                        if (!tileset.sourceImage) {
-                            firstImageName = cc.TiledMap.getShortName(firstImageName);
-                            tileset.sourceImage = this._textures[firstImageName];
-                        }
-
-                        if (!tileset.sourceImage) {
-                            cc.errorID(7221, firstImageName);
-                        }
-                        tileset.imageSize = this._textureSizes[firstImageName] || tileset.imageSize;
                         this.setTilesets(tileset);
                     }
 
                     tile = tiles && tiles[tileIdx];
-                    if (!tile) continue;
+                    if (!tile) {
+                        continue;
+                    }
 
-                    this.parentGID = parseInt(fgid) + parseInt(tile.getAttribute('id') || 0);
+                    this.parentGID = fgid + (parseInt(tile.getAttribute('id')) || 0);
                     let tileImages = tile.getElementsByTagName('image');
                     if (tileImages && tileImages.length > 0) {
-                        image = tileImages[0];
+                        let image = tileImages[0];
                         let imageName = image.getAttribute('source');
                         imageName = imageName.replace(/\\/g, '\/');
 
+                        tileset.imageName = imageName;
+                        tileset.imageSize.width = parseFloat(image.getAttribute('width')) || 0;
+                        tileset.imageSize.height = parseFloat(image.getAttribute('height')) || 0;
+
+                        tileset._tileSize.width = tileset.imageSize.width;
+                        tileset._tileSize.height = tileset.imageSize.height;
+
                         tileset.sourceImage = this._textures[imageName];
                         if (!tileset.sourceImage) {
-                            imageName = cc.TiledMap.getShortName(imageName);
-                            tileset.sourceImage = this._textures[imageName];
+                            let shortName = cc.TiledMap.getShortName(imageName);
+                            tileset.imageName = shortName;
+                            tileset.sourceImage = this._textures[shortName];
+                            if (!tileset.sourceImage) {
+                                cc.errorID(7221, imageName);
+                            }
                         }
 
-                        if (!tileset.sourceImage) {
-                            cc.errorID(7221, imageName);
-                        }
-
-                        let tileSize = cc.size(0, 0);
-                        tileSize.width = parseFloat(image.getAttribute('width'));
-                        tileSize.height = parseFloat(image.getAttribute('height'));
-                        tileset._tileSize = tileSize;
                         tileset.firstGid = this.parentGID;
                     }
 
@@ -936,8 +951,8 @@ cc.TMXMapInfo.prototype = {
                         let frames = animationProp.frames;
                         for (let frameIdx = 0; frameIdx < framesData.length; frameIdx++) {
                             let frame = framesData[frameIdx];
-                            let tileid = parseInt(fgid) + parseInt(frame.getAttribute('tileid'));
-                            let duration = parseFloat(frame.getAttribute('duration'));
+                            let tileid = fgid + (parseInt(frame.getAttribute('tileid')) || 0);
+                            let duration = parseFloat(frame.getAttribute('duration')) || 0;
                             frames.push({tileid : tileid, duration : duration / 1000, grid: null});
                         }
                     }
