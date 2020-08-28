@@ -25,8 +25,6 @@
 
 import Assembler from '../core/renderer/assembler';
 
-import { getBuffer, getVBuffer, vfmtInstance } from '../../cocos2d/core/renderer/webgl/instance-buffer'
-
 const TiledLayer = require('./CCTiledLayer');
 const TiledMap = require('./CCTiledMap');
 const TileFlag = TiledMap.TileFlag;
@@ -52,7 +50,7 @@ let _uvd = {x:0, y:0};
 
 let _renderData = null, _ia = null, _fillGrids = 0,
     _vfOffset = 0, _moveX = 0, _moveY = 0, _layerMat = null,
-    _renderer = null, _renderDataList = null, _buffer = null,
+    _renderer = null, _renderDataList = null, _buffer = null, 
     _curMaterial = null, _comp = null, _vbuf = null, _uintbuf = null;
 
 function _visitUserNode (userNode) {
@@ -123,7 +121,7 @@ function _renderNodes (nodeRow, nodeCol) {
 
 /*
 texture coordinate
-a b
+a b 
 c d
 */
 function _flipTexture (inGrid, gid) {
@@ -135,30 +133,6 @@ function _flipTexture (inGrid, gid) {
     _uvc.y = inGrid.b;
     _uvd.x = inGrid.r;
     _uvd.y = inGrid.b;
-
-    if (inGrid.rotated) {
-        // 2:c   1:a
-        // 4:d   3:b
-        _uva.x = inGrid.r;
-        _uva.y = inGrid.t;
-        _uvb.x = inGrid.r;
-        _uvb.y = inGrid.b;
-        _uvc.x = inGrid.l;
-        _uvc.y = inGrid.t;
-        _uvd.x = inGrid.l;
-        _uvd.y = inGrid.b;
-    } else {
-        // 1:a  3:b
-        // 2:c  4:d
-        _uva.x = inGrid.l;
-        _uva.y = inGrid.t;
-        _uvb.x = inGrid.r;
-        _uvb.y = inGrid.t;
-        _uvc.x = inGrid.l;
-        _uvc.y = inGrid.b;
-        _uvd.x = inGrid.r;
-        _uvd.y = inGrid.b;
-    }
 
     let tempVal = null;
 
@@ -193,17 +167,6 @@ function _flipTexture (inGrid, gid) {
 };
 
 export default class TmxAssembler extends Assembler {
-
-    verticesCount = 0;
-    floatsPerVert = vfmtInstance._bytes / 4
-
-    constructor () {
-        super();
-
-        getBuffer();
-        this._instanceArray = new Array(this.floatsPerVert);
-    }
-
     updateRenderData (comp) {
         if (!comp._renderDataList) {
             comp._buffer = new cc.TiledMapBuffer(renderer._handle, vfmtPosUvColor);
@@ -249,25 +212,21 @@ export default class TmxAssembler extends Assembler {
             _buffer.request(maxGrids * 4, maxGrids * 6);
 
             switch (comp._renderOrder) {
-                // left top to right down, col add, row sub,
+                // left top to right down, col add, row sub, 
                 case RenderOrder.RightDown:
-                    if (comp.useInstance && CC_BUILD ) this.traverseGridsWithInstanse(leftDown, rightTop, -1, 1);
-                    else this.traverseGrids(leftDown, rightTop, -1, 1);
+                    this.traverseGrids(leftDown, rightTop, -1, 1);
                     break;
                 // right top to left down, col sub, row sub
                 case RenderOrder.LeftDown:
-                    if (comp.useInstance && CC_BUILD) this.traverseGridsWithInstanse(leftDown, rightTop, -1, -1);
-                    else this.traverseGrids(leftDown, rightTop, -1, -1);
+                    this.traverseGrids(leftDown, rightTop, -1, -1);
                     break;
                 // left down to right up, col add, row add
                 case RenderOrder.RightUp:
-                    if (comp.useInstance && CC_BUILD) this.traverseGridsWithInstanse(leftDown, rightTop, 1, 1);
-                    else this.traverseGrids(leftDown, rightTop, 1, 1);
+                    this.traverseGrids(leftDown, rightTop, 1, 1);
                     break;
                 // right down to left up, col sub, row add
                 case RenderOrder.LeftUp:
-                    if (comp.useInstance && CC_BUILD) this.traverseGridsWithInstanse(leftDown, rightTop, 1, -1);
-                    else this.traverseGrids(leftDown, rightTop, 1, -1);
+                    this.traverseGrids(leftDown, rightTop, 1, -1);
                     break;
             }
             comp._setCullingDirty(false);
@@ -295,21 +254,12 @@ export default class TmxAssembler extends Assembler {
                     renderer.worldMatDirty--;
                     renderer._flush();
                 }
-                if (renderData.ia._count > 0 && !(comp.useInstance && CC_BUILD)) {
+                if (renderData.ia._count > 0) {
                     renderer.material = renderData.material;
                     renderer.node = layerNode;
                     renderer._flushIA(renderData.ia);
                 }
             }
-        }
-
-        if (comp.useInstance && CC_BUILD) {
-            let instanceBuffer = getBuffer();
-            let buffer = getVBuffer();
-            buffer.set(this._instanceArray, instanceBuffer.instanceOffset * this.floatsPerVert);
-            instanceBuffer.instanceOffset += this.verticesCount;
-
-            cc.renderer._handle._buffer = instanceBuffer;
         }
 
         _renderData = null;
@@ -348,7 +298,7 @@ export default class TmxAssembler extends Assembler {
         let tiles = _comp._tiles;
         let texIdToMatIdx = _comp._texIdToMatIndex;
         let mats = _comp._materials;
-
+    
         let vertices = _comp._vertices;
         let rowData, col, cols, row, rows, colData, tileSize, grid = null, gid = 0;
         let left = 0, bottom = 0, right = 0, top = 0; // x, y
@@ -480,149 +430,6 @@ export default class TmxAssembler extends Assembler {
             _renderer.material = _renderData.material;
             _renderer.node = _comp.node;
             _renderer._flushIA(_renderData.ia);
-        }
-    }
-
-    traverseGridsWithInstanse (leftDown, rightTop, rowMoveDir, colMoveDir) {
-        _renderDataList.reset();
-        this.verticesCount = 0;
-
-        // show nothing
-        if (rightTop.row < 0 || rightTop.col < 0) return;
-
-        _renderData = _renderDataList.popRenderData(_buffer);
-        _ia = _renderData.ia;
-        _vbuf = _buffer._vData;
-        _uintbuf = _buffer._uintVData;
-        _fillGrids = 0;
-        _vfOffset = 0;
-        _curMaterial = null;
-
-        let layerNode = _comp.node;
-        let layerWorldMatrix = layerNode._worldMatrix;
-        let layerMatm = layerWorldMatrix.m;
-        let color = layerNode._color._val;
-        let tiledTiles = _comp._tiledTiles;
-        let texGrids = _comp._texGrids;
-        let tiles = _comp._tiles;
-        let texIdToMatIdx = _comp._texIdToMatIndex;
-        let mats = _comp._materials;
-
-        let instanceBuffer = getBuffer();
-        let instanceVBuffer = getVBuffer();
-        let vertexFloats = vfmtInstance._bytes / 4;
-
-        let vertices = _comp._vertices;
-        let rowData, col, cols, row, rows, colData, tileSize, grid = null, gid = 0;
-        let left = 0, bottom = 0, right = 0, top = 0; // x, y
-        let tiledNode = null, curTexIdx = -1, matIdx;
-        let colNodesCount = 0, checkColRange = true;
-
-        if (rowMoveDir == -1) {
-            row = rightTop.row;
-            rows = leftDown.row;
-        } else {
-            row = leftDown.row;
-            rows = rightTop.row;
-        }
-
-        // traverse row
-        for (; (rows - row) * rowMoveDir >= 0; row += rowMoveDir) {
-            rowData = vertices[row];
-            colNodesCount = _comp._getNodesCountByRow(row);
-            checkColRange = (colNodesCount == 0 && rowData != undefined);
-
-            // limit min col and max col
-            if (colMoveDir == 1) {
-                col = checkColRange && leftDown.col < rowData.minCol ? rowData.minCol : leftDown.col;
-                cols = checkColRange && rightTop.col > rowData.maxCol ? rowData.maxCol : rightTop.col;
-            } else {
-                col = checkColRange && rightTop.col > rowData.maxCol ? rowData.maxCol : rightTop.col;
-                cols = checkColRange && leftDown.col < rowData.minCol ? rowData.minCol : leftDown.col;
-            }
-
-            // traverse col
-            for (; (cols - col) * colMoveDir >= 0; col += colMoveDir) {
-                colData = rowData && rowData[col];
-                if (!colData) {
-                    // only render users nodes because map data is empty
-                    if (colNodesCount > 0) _renderNodes(row, col);
-                    continue;
-                }
-
-                gid = tiles[colData.index];
-                grid = texGrids[(gid & FLIPPED_MASK) >>> 0];
-                if (!grid) continue;
-
-                // check init or new material
-                if (curTexIdx !== grid.texId) {
-                    // need flush
-                    if (curTexIdx !== -1) {
-                        _flush();
-                    }
-                    // update material
-                    curTexIdx = grid.texId;
-                    matIdx = texIdToMatIdx[curTexIdx];
-                    _curMaterial = mats[matIdx];
-                    _renderData.material = _curMaterial;
-                }
-                if (!_curMaterial) continue;
-
-                _flipTexture(grid, gid);
-
-                let offset = (instanceBuffer.instanceOffset + this.verticesCount) * vertexFloats;
-
-                //uv
-                this._instanceArray[offset++] = _uva.x;
-                this._instanceArray[offset++] = _uvc.y;
-                this._instanceArray[offset++] = _uvd.x;
-                this._instanceArray[offset++] = _uvb.y;
-
-                // calc rect vertex
-                left = colData.left - _moveX;
-                bottom = colData.bottom - _moveY;
-                tileSize = grid.tileset._tileSize;
-                right = left + tileSize.width;
-                top = bottom + tileSize.height;
-
-                // begin to fill vertex buffer
-                tiledNode = tiledTiles[colData.index];
-                if (!tiledNode) {
-                    // local
-                    this._instanceArray[offset++] = left;
-                    this._instanceArray[offset++] = bottom;
-                    this._instanceArray[offset++] = right;
-                    this._instanceArray[offset++] = top;
-
-                } else {
-                    this.fillByTiledNode(tiledNode.node, _vbuf, _uintbuf, left, right, top, bottom);
-                }
-
-                // world matrix
-                this._instanceArray[offset++] = layerMatm[0];
-                this._instanceArray[offset++] = layerMatm[1];
-                this._instanceArray[offset++] = layerMatm[4];
-                this._instanceArray[offset++] = layerMatm[5];
-                this._instanceArray[offset++] = layerMatm[12];
-                this._instanceArray[offset++] = layerMatm[13];
-                // uv rotate
-                this._instanceArray[offset++] = 0;
-                // texture id
-                this._instanceArray[offset++] = 3;
-
-                this.verticesCount++;
-
-                _ia._count += 6;
-                _fillGrids++;
-
-                // check render users node
-                if (colNodesCount > 0) _renderNodes(row, col);
-
-                // vertices count exceed 66635, buffer must be switched
-                if (_fillGrids >= MaxGridsLimit) {
-                    _flush();
-                }
-            }
         }
     }
 
