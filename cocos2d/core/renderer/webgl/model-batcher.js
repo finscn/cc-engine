@@ -134,18 +134,9 @@ ModelBatcher.prototype = {
 
     _flush () {
         let material = this.material,
-            buffer = this._buffer;
-        let start = 0, count = 0;
-        if (buffer.isInstance) {
-            start = buffer.instanceStart;
-            count = buffer.instanceOffset - buffer.instanceStart;
-        }
-        else {
-            start = buffer.indiceStart;
-            count = buffer.indiceOffset - buffer.indiceStart;
-        }
-
-        if (!this.walking || !material || count <= 0) {
+            buffer = this._buffer,
+            indiceCount = buffer.indiceOffset - buffer.indiceStart;
+        if (!this.walking || !material || indiceCount <= 0) {
             return;
         }
 
@@ -156,9 +147,8 @@ ModelBatcher.prototype = {
         let ia = this._iaPool.add();
         ia._vertexBuffer = buffer._vb;
         ia._indexBuffer = buffer._ib;
-        ia._start = start;
-        ia._count = count;
-        ia.isInstance = buffer.isInstance;
+        ia._start = buffer.indiceStart;
+        ia._count = indiceCount;
         
         // Generate model
         let model = this._modelPool.add();
@@ -203,11 +193,7 @@ ModelBatcher.prototype = {
         this._flush();
 
         for (let key in _buffers) {
-            let buffer = _buffers[key];
-            if (buffer.isInstance) {
-                buffer._dirty = true
-            }
-            buffer.uploadData();
+            _buffers[key].uploadData();
         }
     
         this.walking = false;

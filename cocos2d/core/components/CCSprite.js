@@ -65,9 +65,7 @@ var SpriteType = cc.Enum({
      * !#zh 以 Mesh 三角形组成的类型
      * @property {Number} MESH
      */
-    MESH: 4,
-
-    QuadInstance: 5,
+    MESH: 4
 });
 
 /**
@@ -354,7 +352,7 @@ var Sprite = cc.Class({
             set (value) {
                 if (this._isTrimmedMode !== value) {
                     this._isTrimmedMode = value;
-                    if (this._type === SpriteType.SIMPLE || this._type === SpriteType.MESH || this._type === SpriteType.QuadInstance) {
+                    if (this._type === SpriteType.SIMPLE || this._type === SpriteType.MESH) {
                         this.setVertsDirty();
                     }
                 }

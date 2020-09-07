@@ -407,7 +407,7 @@ export default class Base {
       }
 
       // draw pass
-      device.draw(ia._start, count, ia.isInstance);
+      device.draw(ia._start, count);
 
       this._resetTextuerUnit();
     }
