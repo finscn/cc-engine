@@ -70,6 +70,16 @@ let dynamicAtlasManager = {
     },
 
     /**
+     * !#en The maximum number of atlas that can be created.
+     * !#zh 获取当前已经创建的图集数量。
+     * @property maxAtlasCount
+     * @type {Number}
+     */
+    get atlasCount () {
+        return _atlases.length;
+    },
+
+    /**
      * !#en Is enable textureBleeding.
      * !#zh 是否开启 textureBleeding
      * @property textureBleeding
@@ -235,10 +245,6 @@ let dynamicAtlasManager = {
                 _debugNode = null;
             }
         }
-    },
-
-    get atlasCount () {
-        return _atlases.length;
     },
 
     update () {
