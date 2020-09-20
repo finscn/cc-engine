@@ -37,11 +37,11 @@ let _label = null;
 
 function generateStats () {
     if (_stats) return;
-    
+
     _stats = {
-        frame: { desc: 'Frame time (ms)', min: 0, max: 50, average: 500 },
         fps: { desc: 'Framerate (FPS)', below: 30, average: 500 },
-        draws: { desc: 'Draw call' },
+        draws: { desc: 'Draw Call' },
+        frame: { desc: 'Frame time (ms)', min: 0, max: 50, average: 500 },
         logic: { desc: 'Game Logic (ms)', min: 0, max: 50, average: 500, color: '#080' },
         render: { desc: 'Renderer (ms)', min: 0, max: 50, average: 500, color: '#f90' },
         mode: { desc: cc.game.renderType === cc.game.RENDER_TYPE_WEBGL ? 'WebGL' : 'Canvas', min: 1 }
@@ -126,7 +126,7 @@ function afterDraw () {
     _stats['draws']._counter.value = cc.renderer.drawCalls;
     _stats['frame']._counter.end(now);
     _stats['fps']._counter.frame(now);
-    
+
     let left = '';
     let right = '';
     for (let id in _stats) {
