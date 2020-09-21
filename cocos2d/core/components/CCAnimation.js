@@ -499,7 +499,8 @@ let Animation = cc.Class({
      * @return {boolean} - Whether the clip with the name already exists.
      */
     hasClip: function (name) {
-        return !!(this._nameToState && this._nameToState[name]);
+        this._init();
+        return !!(this._nameToState[name]);
     },
 
     /**
