@@ -782,7 +782,6 @@ var Texture2D = cc.Class({
 
         if (cc.macro.CLEANUP_IMAGE_CACHE
             || (cc.macro.CLEANUP_NONPACK_IMAGE_CACHE && !this._packable)) {
-            console.log(this._uuid, this.width, this.height,(cc.macro.CLEANUP_NONPACK_IMAGE_CACHE && !this._packable));
             if (this._image instanceof HTMLImageElement) {
                 this._clearImage();
             }
