@@ -298,6 +298,8 @@ cc.macro = {
      */
     CLEANUP_IMAGE_CACHE: false,
 
+    CLEANUP_NONPACK_IMAGE_CACHE: false,
+
     /**
      * !#en
      * Whether or not show mesh wire frame.
