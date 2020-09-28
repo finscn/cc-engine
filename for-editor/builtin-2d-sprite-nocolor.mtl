@@ -1,0 +1,16 @@
+{
+  "__type__": "cc.Material",
+  "_name": "builtin-2d-sprite-nocolor",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "8551e74b-6beb-4297-9738-725a10c811ea"
+  },
+  "_techniqueData": {
+    "0": {
+      "defines": {
+        "USE_TEXTURE": true
+      }
+    }
+  }
+}
