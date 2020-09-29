@@ -26,7 +26,6 @@
  ****************************************************************************/
 
 const EventTarget = require("../event/event-target");
-const textureUtil = require('../utils/texture-util');
 
 const INSET_LEFT = 0;
 const INSET_TOP = 1;
