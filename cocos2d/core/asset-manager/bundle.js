@@ -242,16 +242,18 @@ Bundle.prototype = {
      * bundle2.load('imgs/cocos', cc.SpriteFrame, null, (err, spriteFrame) => console.log(err));
      * 
      * @typescript
-     * load<T extends cc.Asset>(paths: string|string[], type: typeof cc.Asset, onProgress: (finish: number, total: number, item: RequestItem) => void, onComplete: (error: Error, assets: T|Array<T>) => void): void
-     * load<T extends cc.Asset>(paths: string|string[], onProgress: (finish: number, total: number, item: RequestItem) => void, onComplete: (error: Error, assets: T|Array<T>) => void): void
-     * load<T extends cc.Asset>(paths: string|string[], type: typeof cc.Asset, onComplete: (error: Error, assets: T|Array<T>) => void): void
-     * load<T extends cc.Asset>(paths: string|string[], onComplete: (error: Error, assets: T|Array<T>) => void): void
-     * load<T extends cc.Asset>(paths: string|string[], type: typeof cc.Asset): void
-     * load<T extends cc.Asset>(paths: string|string[]): void
+     * load<T extends cc.Asset>(paths: string, type: typeof cc.Asset, onProgress: (finish: number, total: number, item: RequestItem) => void, onComplete: (error: Error, assets: T) => void): void
+     * load<T extends cc.Asset>(paths: string[], type: typeof cc.Asset, onProgress: (finish: number, total: number, item: RequestItem) => void, onComplete: (error: Error, assets: Array<T>) => void): void
+     * load<T extends cc.Asset>(paths: string, onProgress: (finish: number, total: number, item: RequestItem) => void, onComplete: (error: Error, assets: T) => void): void
+     * load<T extends cc.Asset>(paths: string[], onProgress: (finish: number, total: number, item: RequestItem) => void, onComplete: (error: Error, assets: Array<T>) => void): void
+     * load<T extends cc.Asset>(paths: string, type: typeof cc.Asset, onComplete?: (error: Error, assets: T) => void): void
+     * load<T extends cc.Asset>(paths: string[], type: typeof cc.Asset, onComplete?: (error: Error, assets: Array<T>) => void): void
+     * load<T extends cc.Asset>(paths: string, onComplete?: (error: Error, assets: T) => void): void
+     * load<T extends cc.Asset>(paths: string[], onComplete?: (error: Error, assets: Array<T>) => void): void
      */
     load (paths, type, onProgress, onComplete) {
         var { type, onProgress, onComplete } = parseLoadResArgs(type, onProgress, onComplete);
-        cc.assetManager.loadAny(paths, { __requestType__: RequestType.PATH, type: type, bundle: this.name }, onProgress, onComplete);
+        cc.assetManager.loadAny(paths, { __requestType__: RequestType.PATH, type: type, bundle: this.name, __outputAsArray__: Array.isArray(paths) }, onProgress, onComplete);
     },
 
     /**
@@ -430,8 +432,8 @@ Bundle.prototype = {
      * loadScene(sceneName: string, options: Record<string, any>, onProgress: (finish: number, total: number, item: RequestItem) => void, onComplete: (error: Error, sceneAsset: cc.SceneAsset) => void): void
      * loadScene(sceneName: string, onProgress: (finish: number, total: number, item: RequestItem) => void, onComplete: (error: Error, sceneAsset: cc.SceneAsset) => void): void
      * loadScene(sceneName: string, options: Record<string, any>, onComplete: (error: Error, sceneAsset: cc.SceneAsset) => void): void
-     * loadScene(sceneName: string, options: Record<string, any>): void
      * loadScene(sceneName: string, onComplete: (error: Error, sceneAsset: cc.SceneAsset) => void): void
+     * loadScene(sceneName: string, options: Record<string, any>): void
      * loadScene(sceneName: string): void
      */
     loadScene (sceneName, options, onProgress, onComplete) {
@@ -484,8 +486,8 @@ Bundle.prototype = {
      * preloadScene(sceneName: string, options: Record<string, any>, onProgress: (finish: number, total: number, item: RequestItem) => void, onComplete: (error: Error) => void): void
      * preloadScene(sceneName: string, onProgress: (finish: number, total: number, item: RequestItem) => void, onComplete: (error: Error) => void): void
      * preloadScene(sceneName: string, options: Record<string, any>, onComplete: (error: Error) => void): void
-     * preloadScene(sceneName: string, options: Record<string, any>): void
      * preloadScene(sceneName: string, onComplete: (error: Error) => void): void
+     * preloadScene(sceneName: string, options: Record<string, any>): void
      * preloadScene(sceneName: string): void
      */
     preloadScene (sceneName, options, onProgress, onComplete) {
@@ -519,7 +521,7 @@ Bundle.prototype = {
      * bundle1.get('music/hit', cc.AudioClip);
      * 
      * @typescript
-     * get (path: string, type?: typeof cc.Asset): cc.Asset
+     * get<T extends cc.Asset> (path: string, type?: typeof cc.Asset): T
      */
     get (path, type) {
         var info = this.getInfoWithPath(path, type);

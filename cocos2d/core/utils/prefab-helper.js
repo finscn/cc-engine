@@ -28,36 +28,20 @@ cc._PrefabInfo = cc.Class({
     name: 'cc.PrefabInfo',
     // extends: require('../platform/CCObject'),
     properties: {
-        // the most top node of this prefab in the scene
+        // the most top node of this prefab
         root: null,
 
         // 所属的 prefab 资源对象 (cc.Prefab)
         // In Editor, only asset._uuid is usable because asset will be changed.
         asset: null,
 
-        // 用来标识别该节点在 prefab 资源中的位置，因此这个 ID 只需要保证在 Assets 里不重复就行
+        // To identify the node in the prefab asset, so only needs to be unique.
+        // Not available in the root node.
         fileId: '',
 
         // Indicates whether this node should always synchronize with the prefab asset, only available in the root node
         sync: false,
-
-        // Indicates whether this node is synchronized, only available in the root node
-        _synced: {
-            default: false,
-            serializable: false
-        },
     },
-    // _instantiate (cloned) {
-    //     if (!cloned) {
-    //         cloned = new cc._PrefabInfo();
-    //     }
-    //     cloned.root = this.root;
-    //     cloned.asset = this.asset;
-    //     cloned.fileId = this.fileId;
-    //     cloned.sync = this.sync;
-    //     cloned._synced = this._synced;
-    //     return cloned;
-    // }
 });
 
 // prefab helper function
@@ -65,9 +49,7 @@ module.exports = {
     // update node to make it sync with prefab
     syncWithPrefab: function (node) {
         var _prefab = node._prefab;
-        // non-reentrant
-        _prefab._synced = true;
-        //
+
         if (!_prefab.asset) {
             if (CC_EDITOR) {
                 var NodeUtils = Editor.require('scene://utils/node');
@@ -93,7 +75,6 @@ module.exports = {
         var eulerAnglesY = node._eulerAngles.y;
         var eulerAnglesZ = node._eulerAngles.z;
         var _localZOrder = node._localZOrder;
-        var _globalZOrder = node._globalZOrder;
         var trs = node._trs;
         var x = trs[0];
         var y = trs[1];
@@ -107,7 +88,6 @@ module.exports = {
         else {
             // root in prefab asset is always synced
             var prefabRoot = _prefab.asset.data;
-            prefabRoot._prefab._synced = true;
 
             // use node as the instantiated prefabRoot to make references to prefabRoot in prefab redirect to node
             prefabRoot._iN$t = node;
@@ -125,7 +105,6 @@ module.exports = {
         node._name = _name;
         node._active = _active;
         node._localZOrder = _localZOrder;
-        node._globalZOrder = _globalZOrder;
         trs = node._trs;
         trs[0] = x;
         trs[1] = y;

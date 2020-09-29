@@ -54,8 +54,6 @@ Label._canvasPool = {
 
             // default text info
             context.textBaseline = 'alphabetic';
-            // use round for line join to avoid sharp intersect point
-            context.lineJoin = 'round';
         }
 
         return data;
@@ -77,7 +75,7 @@ Assembler.register(cc.Label, {
             ctor = is3DNode ? Bmfont3D : Bmfont;
         } else if (label.cacheMode === Label.CacheMode.CHAR) {
 
-            if(CC_JSB && !is3DNode && !!jsb.LabelRenderer && label.font instanceof cc.TTFFont && !label._forceUseCanvas){
+            if(CC_JSB && !is3DNode && !!jsb.LabelRenderer && label.font instanceof cc.TTFFont && label._useNativeTTF()){
                 ctor = NativeTTF;
             } else if (cc.sys.platform === cc.sys.WECHAT_GAME_SUB) {
                 cc.warn('sorry, subdomain does not support CHAR mode currently!');

@@ -362,9 +362,9 @@ module.exports = cc.debug = {
      * @method setDisplayStats
      * @param {Boolean} displayStats
      */
-    setDisplayStats: function (displayStats, bgColor) {
+    setDisplayStats: function (displayStats) {
         if (cc.profiler && cc.game.renderType !== cc.game.RENDER_TYPE_CANVAS) {
-            displayStats ? cc.profiler.showStats(bgColor) : cc.profiler.hideStats();
+            displayStats ? cc.profiler.showStats() : cc.profiler.hideStats();
             cc.game.config.showFPS = !!displayStats;
         }
     },

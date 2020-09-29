@@ -465,7 +465,7 @@ var widgetManager = cc._widgetManager = module.exports = {
         }
         else {
             let thisOnResized = this.onResized.bind(this);
-            window.addEventListener('resize', thisOnResized);
+            cc.view.on('canvas-resize', thisOnResized);
             window.addEventListener('orientationchange', thisOnResized);
         }
     },
@@ -493,12 +493,8 @@ var widgetManager = cc._widgetManager = module.exports = {
     },
     refreshWidgetOnResized (node) {
         var widget = cc.Node.isNode(node) && node.getComponent(cc.Widget);
-        if (widget) {
-            if (widget && widget.enabled && widget.alignMode === AlignMode.ON_WINDOW_RESIZE) {
-                if (widget.alignMode === AlignMode.ON_WINDOW_RESIZE) {
-                   this.add(widget);
-                }
-            }
+        if (widget && widget.enabled && widget.alignMode === AlignMode.ON_WINDOW_RESIZE) {
+            this.add(widget);
         }
 
         var children = node._children;

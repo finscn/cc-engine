@@ -243,9 +243,7 @@ var properties = {
                 this._spriteFrame = value;
             }
 
-            if ((lastSprite && lastSprite.getTexture()) !== (value && value.getTexture())) {
-                this._applySpriteFrame(lastSprite);
-            }
+            this._applySpriteFrame(lastSprite);
             if (CC_EDITOR) {
                 this.node.emit('spriteframe-changed', this);
             }
@@ -1055,13 +1053,13 @@ var ParticleSystem = cc.Class({
                 if (!tex) {
                     let buffer = codec.unzipBase64AsArray(textureData, 1);
                     if (!buffer) {
-                        cc.logID(6030);
+                        cc.warnID(6030, this._file.name);
                         return false;
                     }
 
                     let imageFormat = getImageFormatByData(buffer);
                     if (imageFormat !== macro.ImageFormat.TIFF && imageFormat !== macro.ImageFormat.PNG) {
-                        cc.logID(6031);
+                        cc.warnID(6031, this._file.name);
                         return false;
                     }
 
@@ -1076,7 +1074,7 @@ var ParticleSystem = cc.Class({
                 }
 
                 if (!tex)
-                    cc.logID(6032);
+                    cc.warnID(6032, this._file.name);
                 // TODO: Use cc.assetManager to load asynchronously the SpriteFrame object, avoid using textureUtil
                 this.spriteFrame = new cc.SpriteFrame(tex);
             }

@@ -207,7 +207,7 @@ cc.Director.prototype = {
         }
 
         // physics 3d manager
-        if (cc.Physics3DManager) {
+        if (cc.Physics3DManager && (CC_PHYSICS_BUILTIN || CC_PHYSICS_CANNON)) {
             this._physics3DManager = new cc.Physics3DManager();
             this._scheduler.scheduleUpdate(this._physics3DManager, Scheduler.PRIORITY_SYSTEM, false);
         } else {
@@ -545,7 +545,6 @@ cc.Director.prototype = {
                 }
                 else {
                     self.runSceneImmediate(scene, _onUnloaded, onLaunched);
-                    return;
                 }
             });
             return true;

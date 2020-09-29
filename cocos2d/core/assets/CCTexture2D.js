@@ -386,20 +386,6 @@ var Texture2D = cc.Class({
         // predefined most common extnames
         extnames: ['.png', '.jpg', '.jpeg', '.bmp', '.webp', '.pvr', '.pkm'],
 
-        _parseNativeDepFromJson (json) {
-            var data = json.content;
-            let fields = data.split(',');
-            // decode extname
-            var extIdStr = fields[0];
-            var ext = '';
-            if (extIdStr) {
-                var result = Texture2D._parseExt(extIdStr, PixelFormat.RGBA8888);
-                ext = result.bestExt || result.defaultExt;
-            }
-
-            return { __isNative__: true, ext, __flipY__: false, __premultiplyAlpha__: fields[5] && fields[5].charCodeAt(0) === CHAR_CODE_1 };
-        },
-
         _parseExt (extIdStr, defaultFormat) {
             let device = cc.renderer.device;
             let extIds = extIdStr.split('_');
@@ -442,10 +428,6 @@ var Texture2D = cc.Class({
                 }
             }
             return { bestExt, bestFormat, defaultExt };
-        },
-
-        _parseDepsFromJson () {
-            return [];
         }
     },
 
@@ -498,6 +480,7 @@ var Texture2D = cc.Class({
      * @method getImpl
      */
     getImpl () {
+        if (!this._texture) this._texture = new renderer.Texture2D(renderer.device, {});
         return this._texture;
     },
 
@@ -982,7 +965,7 @@ var Texture2D = cc.Class({
         return asset;
     },
 
-    _deserialize: function (data, handle) {
+    _deserialize: function (data) {
         let fields = data.split(',');
         // decode extname
         let extIdStr = fields[0];
@@ -993,9 +976,12 @@ var Texture2D = cc.Class({
                 this._setRawAsset(result.bestExt);
                 this._format = result.bestFormat;
             }
-            else {
+            else if (result.defaultExt) {
                 this._setRawAsset(result.defaultExt);
-                cc.warnID(3120, handle.customEnv.url, result.defaultExt, result.defaultExt);
+                cc.warnID(3120, result.defaultExt, result.defaultExt);
+            }
+            else {
+                throw new Error(cc.debug.getError(3121));
             }
         }
         if (fields.length === 8) {

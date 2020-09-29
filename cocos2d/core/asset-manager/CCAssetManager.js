@@ -292,6 +292,8 @@ function AssetManager () {
         },
 
         'script': {
+            maxConcurrency: 1024,
+            maxRequestsPerFrame: 1024,
             priority: 2
         }
     }
@@ -375,7 +377,7 @@ AssetManager.prototype = {
         this.assets.clear();
         this.bundles.clear();
         this.packManager.init();
-        this.downloader.init(options.bundleVers);
+        this.downloader.init(options.bundleVers, options.server);
         this.parser.init();
         this.dependUtil.init();
         this.generalImportBase = options.importBase;
@@ -485,6 +487,7 @@ AssetManager.prototype = {
         var { options, onProgress, onComplete } = parseParameters(options, onProgress, onComplete);
 
         options.preset = options.preset || 'default';
+        requests = Array.isArray(requests) ? requests.concat() : requests;
         let task = new Task({input: requests, onProgress, onComplete: asyncify(onComplete), options});
         pipeline.async(task);
     },
@@ -525,6 +528,7 @@ AssetManager.prototype = {
         var { options, onProgress, onComplete } = parseParameters(options, onProgress, onComplete);
 
         options.preset = options.preset || 'preload';
+        requests = Array.isArray(requests) ? requests.concat() : requests;
         var task = new Task({input: requests, onProgress, onComplete: asyncify(onComplete), options});
         fetchPipeline.async(task);
     },
@@ -610,6 +614,10 @@ AssetManager.prototype = {
     loadRemote (url, options, onComplete) {
         var { options, onComplete } = parseParameters(options, undefined, onComplete);
 
+        if (this.assets.has(url)) {
+            return asyncify(onComplete)(null, this.assets.get(url));
+        }
+
         options.__isNative__ = true;
         options.preset = options.preset || 'remote';
         this.loadAny({url}, options, null, function (err, data) {
@@ -618,7 +626,9 @@ AssetManager.prototype = {
                 onComplete && onComplete(err, null);
             }
             else {
-                factory.create(url, data, options.ext || cc.path.extname(url), options, onComplete);
+                factory.create(url, data, options.ext || cc.path.extname(url), options, function (err, out) {
+                    onComplete && onComplete(err, out);
+                });
             }
         });
     },
