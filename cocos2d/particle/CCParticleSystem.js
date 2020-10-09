@@ -1023,8 +1023,8 @@ var ParticleSystem = cc.Class({
                     self._applySpriteFrame(self.spriteFrame);
                 }
 
-                file._nativeAsset = null;
-                self._file = null;
+                // file._nativeAsset = null;
+                // self._file = null;
             });
         }
     },
