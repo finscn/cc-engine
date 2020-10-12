@@ -702,8 +702,8 @@ let Label = cc.Class({
     },
 
     _resetFrame () {
-        if (this._frame) {
-            // deleteFromDynamicAtlas(this, this._frame);
+        if (this._frame && !(this.font instanceof cc.BitmapFont)) {
+            deleteFromDynamicAtlas(this, this._frame);
             this._frame = null;
         }
     },
