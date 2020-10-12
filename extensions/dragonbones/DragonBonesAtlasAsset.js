@@ -112,8 +112,8 @@ var DragonBonesAtlasAsset = cc.Class({
             this._textureAtlasData = factory.parseTextureAtlasData(atlasJsonObj, this.texture, this._uuid);
         }
 
-        this._atlasJson = null;
-        this._atlasJsonData = null;
+        // this._atlasJson = null;
+        // this._atlasJsonData = null;
     },
 
     _clear () {

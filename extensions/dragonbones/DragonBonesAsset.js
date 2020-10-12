@@ -68,7 +68,8 @@ var DragonBonesAsset = cc.Class({
                 return this._buffer;
             },
             set (bin) {
-                this._buffer = bin ? (bin.buffer || bin) : null;
+                this._buffer = bin.buffer || bin;
+                // this._buffer = bin ? (bin.buffer || bin) : null;
                 this.reset();
             },
             override: true
@@ -128,8 +129,8 @@ var DragonBonesAsset = cc.Class({
 
         this._factory.parseDragonBonesData(rawData, armatureKey);
 
-        this._dragonBonesJsonData = null;
-        this._dragonBonesJson = null;
+        // this._dragonBonesJsonData = null;
+        // this._dragonBonesJson = null;
 
         return armatureKey;
     },
