@@ -111,7 +111,7 @@ let StageFlags = cc.Enum({
  * !#en
  * Camera is usefull when making reel game or other games which need scroll screen.
  * Using camera will be more efficient than moving node to scroll screen.
- * Camera 
+ * Camera
  * !#zh
  * 摄像机在制作卷轴或是其他需要移动屏幕的游戏时比较有用，使用摄像机将会比移动节点来移动屏幕更加高效。
  * @class Camera
@@ -465,7 +465,7 @@ let Camera = cc.Class({
          * !#zh
          * 获取节点所在的第一个摄像机。
          * @method findCamera
-         * @param {Node} node 
+         * @param {Node} node
          * @return {Camera}
          * @static
          */
@@ -499,7 +499,7 @@ let Camera = cc.Class({
             camera.setStages([
                 'opaque',
             ]);
-            
+
             camera.setFov(Math.PI * 60 / 180);
             camera.setNear(0.1);
             camera.setFar(4096);
@@ -593,7 +593,10 @@ let Camera = cc.Class({
         this._updateProjection();
         this._updateStages();
         this._updateRect();
-        this.beforeDraw();
+
+        if (!CC_EDITOR) {
+            this.beforeDraw();
+        }
     },
 
     __preload () {
@@ -676,8 +679,8 @@ let Camera = cc.Class({
      * !#zh
      * 将坐标从屏幕坐标系转换到世界坐标系。
      * @method getScreenToWorldPoint
-     * @param {Vec3|Vec2} screenPosition 
-     * @param {Vec3|Vec2} [out] 
+     * @param {Vec3|Vec2} screenPosition
+     * @param {Vec3|Vec2} [out]
      * @return {Vec3|Vec2} out
      */
     getScreenToWorldPoint (screenPosition, out) {
@@ -699,8 +702,8 @@ let Camera = cc.Class({
      * !#zh
      * 将坐标从世界坐标系转化到屏幕坐标系。
      * @method getWorldToScreenPoint
-     * @param {Vec3|Vec2} worldPosition 
-     * @param {Vec3|Vec2} [out] 
+     * @param {Vec3|Vec2} worldPosition
+     * @param {Vec3|Vec2} [out]
      * @return {Vec3|Vec2} out
      */
     getWorldToScreenPoint (worldPosition, out) {
@@ -713,7 +716,7 @@ let Camera = cc.Class({
             this.getWorldToScreenMatrix2D(_mat4_temp_1);
             Vec2.transformMat4(out, worldPosition, _mat4_temp_1);
         }
-        
+
         return out;
     },
 
@@ -728,7 +731,7 @@ let Camera = cc.Class({
      */
     getRay (screenPos) {
         if (!cc.geomUtils) return screenPos;
-        
+
         Vec3.set(_v3_temp_3, screenPos.x, screenPos.y, 1);
         this._camera.screenToWorld(_v3_temp_2, _v3_temp_3, cc.visibleRect.width, cc.visibleRect.height);
 
@@ -762,7 +765,7 @@ let Camera = cc.Class({
      * !#zh
      * 手动渲染摄像机。
      * @method render
-     * @param {Node} [rootNode] 
+     * @param {Node} [rootNode]
      */
     render (rootNode) {
         rootNode = rootNode || cc.director.getScene();
@@ -860,7 +863,7 @@ cc.js.mixin(Camera.prototype, {
      * 将一个世界坐标系下的点转换到摄像机坐标系下。
      * @method getWorldToCameraPoint
      * @deprecated since v2.1.3
-     * @param {Vec2} point 
+     * @param {Vec2} point
      * @param {Vec2} [out] - the point to receive the result
      * @return {Vec2} out
      */
