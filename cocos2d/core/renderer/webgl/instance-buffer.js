@@ -4,21 +4,20 @@ let instanceBuffer;
 let vbuf;
 let bufferIdx = 0;
 
-let instanceData = null; // 全局的数据buffer，用它变图// 只有提交用这个
-let instanceFloat32Data = null; // 数据管理用这个 // 和上面那个的data实际上是一个data
+let instanceData = null;
+let instanceFloat32Data = null;
 let instanceDataDirty = false;
 
 let resizeDirty = false;
 
-let instanceTexture = null; // 图
-let instanceDataTexOptions = null; // 图信息
+let instanceTexture = null;
+let instanceDataTexOptions = null;
 
-let SUPPORT_FLOAT_TEXTURE = false; //拓展支持查询
-let size = 64;//初始宽高
+let SUPPORT_FLOAT_TEXTURE = false;
+let size = 64;
 
-// 同时用于索引分配和可用索引记录
-let fixLength = 0; // 长度记录
-let freeIndexBuffer = []; // 可用索引记录
+let fixLength = 0;
+let freeIndexBuffer = [];
 
 function checkFloatSupport () {
     SUPPORT_FLOAT_TEXTURE = !!cc.sys.glExtension('OES_texture_float');
@@ -26,26 +25,18 @@ function checkFloatSupport () {
 
 export function initFreeIndexBuffer () {
     if (fixLength === 0) {
-        // 拓展检查
         checkFloatSupport();
-        //初始化索引数组
         freeIndexBuffer.length = fixLength = SUPPORT_FLOAT_TEXTURE ? size * size / 4 : size * size / 16;
         for(let i = 0; i < freeIndexBuffer.length; i++ ) {
             freeIndexBuffer[i] = i;
         }
-        //初始化数据数组
         initBuffer();
     } else if (freeIndexBuffer.length === 0) {
-        // resize 索引数组 及 数据数组
         resizeDataBuffer();
-        // instanceDataDirty = true;
     }
 }
 
-//重新缩放所有的buffer，包括存 data 那个，包括索引这个，包括图
 function resizeDataBuffer () {
-    // 此时需要重新分配了吧 // 同时也意味着 buffer 也放不下了，图也放不下了
-    // resize
     size *= 2;
     freeIndexBuffer.length = (SUPPORT_FLOAT_TEXTURE ? size * size / 4 : size * size / 16) - fixLength;
     for(let i = 0; i < freeIndexBuffer.length; i++ ) {
@@ -61,10 +52,7 @@ function resizeDataBuffer () {
         instanceData = new Uint8Array(instanceFloat32Data.buffer);
     }
 
-    // resizeTexture // 需要重新initWithData 还是直接更新 instanceDataTexOptions？
-    // instanceDataTexOptions.width = SUPPORT_FLOAT_TEXTURE ? size : size * 4;
-    // instanceDataTexOptions.height = size;
-    // instanceDataTexOptions.images[0] = instanceData;
+    // resizeTexture
     initTexture(SUPPORT_FLOAT_TEXTURE);
 }
 
@@ -76,12 +64,10 @@ export function releaseDataIndex (index) {
     freeIndexBuffer.unshift(index);
 }
 
-// instanceArray 结构体
 export const vfmtInstance = new cc.gfx.VertexFormat([
     { name: 'a_block_idx', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 1 },
 ])
 
-// data 结构 // 配合在 shader 中解析
 export const vfmtDataBuffer = new cc.gfx.VertexFormat([
     { name: 'a_uv_matrix', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 4 },
     { name: 'a_pos_local', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 4 },
@@ -91,8 +77,6 @@ export const vfmtDataBuffer = new cc.gfx.VertexFormat([
     { name: 'a_texture_id', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 1 },
 ])
 
-// resize 和生命周期的管理，可以在一起
-// init 和 getBuffer 可以在一起
 export function initBuffer () {
 
     if (!instanceData) {
@@ -100,14 +84,11 @@ export function initBuffer () {
         if(!SUPPORT_FLOAT_TEXTURE) {
             instanceData = new Uint8Array(instanceFloat32Data.buffer);
         }
-        // 初始化的时候绑定就行，之后只需要更新（_commitJointsData）
         initTexture(SUPPORT_FLOAT_TEXTURE);
     }
 }
 
 function initTexture (IsFloatTexture) {
-    // 需要更新机制，而且每帧更一次就行了 在 model-batcher 中
-    // 没变就不更新 有 dirty
     let pixelFormat = cc.Texture2D.PixelFormat.RGBA32F,
     width = size,
     height = size;
@@ -119,7 +100,7 @@ function initTexture (IsFloatTexture) {
     let NEAREST = cc.Texture2D.Filter.NEAREST;
     texture.setFilters(NEAREST, NEAREST);
     texture.initWithData(instanceData, pixelFormat, width, height);
-    instanceTexture = texture; // 最后提交用这个 instanceTexture
+    instanceTexture = texture;
     instanceDataTexOptions = {
         format: pixelFormat,
         width: texture.width,
