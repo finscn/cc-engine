@@ -455,7 +455,7 @@ let posLocation = -1
 function bindInstance (gl, program) {
 
   if (posLocation === -1) {
-    posLocation = program._attributes.findIndex(a => a.name === 'a_position')
+    posLocation = program._attributes.findIndex(a => a.name === cc.gfx.ATTR_POSITION)
   }
 
   if (!quadVB) {
@@ -553,7 +553,7 @@ function _commitVertexBuffers(device, gl, cur, next, isInstance) {
         else {
           device.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 0);
         }
-        
+
       }
     }
 
@@ -1375,7 +1375,7 @@ export default class Device {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, next.indexBuffer && next.indexBuffer._glID !== -1 ? next.indexBuffer._glID : null);
       }
     }
-    
+
 
     // commit program
     let programDirty = false;
