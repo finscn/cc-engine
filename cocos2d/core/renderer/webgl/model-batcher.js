@@ -35,8 +35,6 @@ import InputAssembler from '../../../renderer/core/input-assembler';
 import RecyclePool from '../../../renderer/memop/recycle-pool';
 import Model from '../../../renderer/scene/model';
 
-import {commitInstanceData, setInstanceDataDirty, getInstanceDataDirty, setResizeDirty} from './instance-buffer';
-
 let _buffers = {};
 
 const empty_material = new Material();
@@ -71,7 +69,7 @@ var ModelBatcher = function (device, renderScene) {
     this._sortKey = 0;
 
     this.node = this._dummyNode;
-    
+
     this.parentOpacity = 1;
     this.parentOpacityDirty = 0;
     this.worldMatDirty = 0;
@@ -79,7 +77,7 @@ var ModelBatcher = function (device, renderScene) {
 
 ModelBatcher.prototype = {
     constructor: ModelBatcher,
-    
+
     reset() {
         // Reset pools
         this._iaPool.reset();
@@ -121,7 +119,7 @@ ModelBatcher.prototype = {
         this.material = material;
         let effect = material.effect;
         if (!effect) return;
-        
+
         // Generate model
         let model = this._modelPool.add();
         this._batchedModels.push(model);
@@ -130,7 +128,7 @@ ModelBatcher.prototype = {
         model.setNode(this.node);
         model.setEffect(effect, null);
         model.setInputAssembler(empty_ia);
-        
+
         this._renderScene.addModel(model);
     },
 
@@ -153,7 +151,7 @@ ModelBatcher.prototype = {
 
         let effect = material.effect;
         if (!effect) return;
-        
+
         // Generate ia
         let ia = this._iaPool.add();
         ia._vertexBuffer = buffer._vb;
@@ -161,7 +159,7 @@ ModelBatcher.prototype = {
         ia._start = start;
         ia._count = count;
         ia.isInstance = buffer.isInstance;
-        
+
         // Generate model
         let model = this._modelPool.add();
         this._batchedModels.push(model);
@@ -170,7 +168,7 @@ ModelBatcher.prototype = {
         model.setNode(this.node);
         model.setEffect(effect);
         model.setInputAssembler(ia);
-        
+
         this._renderScene.addModel(model);
         buffer.forwardIndiceStartToOffset();
     },
@@ -183,7 +181,7 @@ ModelBatcher.prototype = {
         let material = this.material;
         let effect = material.effect;
         if (!effect) return;
-        
+
         // Generate model
         let model = this._modelPool.add();
         this._batchedModels.push(model);
@@ -192,7 +190,7 @@ ModelBatcher.prototype = {
         model.setNode(this.node);
         model.setEffect(effect);
         model.setInputAssembler(ia);
-        
+
         this._renderScene.addModel(model);
     },
 
@@ -204,20 +202,15 @@ ModelBatcher.prototype = {
         // flush current rest Model
         this._flush();
 
-        if (getInstanceDataDirty()) {
-            commitInstanceData();
-            setInstanceDataDirty(false);
-            setResizeDirty(false);
-        }
-
         for (let key in _buffers) {
             let buffer = _buffers[key];
             if (buffer.isInstance) {
+                buffer.commitInstanceData()
                 buffer._dirty = true
             }
             buffer.uploadData();
         }
-    
+
         this.walking = false;
     },
 

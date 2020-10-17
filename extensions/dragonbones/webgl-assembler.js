@@ -26,6 +26,7 @@
 import Assembler from '../../cocos2d/core/renderer/assembler';
 import Mat4 from '../../cocos2d/core/value-types/mat4';
 
+// TODO: use InstanceAgent, and use custom vfmtInstance & vfmtData
 import { getBuffer, getVBuffer, vfmtInstance } from '../../cocos2d/core/renderer/webgl/instance-buffer'
 
 const Armature = require('./ArmatureDisplay');
@@ -167,7 +168,7 @@ export default class ArmatureAssembler extends Assembler {
 
             indices = slot._indices;
             _indexCount = indices.length;
-            
+
             offsetInfo = _buffer.request(_vertexCount, _indexCount);
             _indexOffset = offsetInfo.indiceOffset;
             _vfOffset = offsetInfo.byteOffset >> 2;
@@ -184,7 +185,7 @@ export default class ArmatureAssembler extends Assembler {
             _m13 = slotMatm[13];
 
             for (let vi = 0, vl = vertices.length; vi < vl;) {
-                _x = vertices[vi++]; 
+                _x = vertices[vi++];
                 _y = vertices[vi++];
 
                 vbuf[_vfOffset++] = _x * _m00 + _y * _m04 + _m12; // x
@@ -292,7 +293,7 @@ export default class ArmatureAssembler extends Assembler {
         let offsetInfo;
         let vertices = frame.vertices;
         let indices = frame.indices;
-        
+
         let frameVFOffset = 0, frameIndexOffset = 0, segVFCount = 0;
         if (parentMat) {
             let parentMatm = parentMat.m;
@@ -326,7 +327,7 @@ export default class ArmatureAssembler extends Assembler {
 
             _vertexCount = segInfo.vertexCount;
             _indexCount = segInfo.indexCount;
-            
+
             offsetInfo = _buffer.request(_vertexCount, _indexCount);
             _indexOffset = offsetInfo.indiceOffset;
             _vertexOffset = offsetInfo.vertexOffset;
@@ -374,7 +375,7 @@ export default class ArmatureAssembler extends Assembler {
 
     fillBuffers (comp, renderer) {
         comp.node._renderFlag |= RenderFlow.FLAG_UPDATE_RENDER_DATA;
-        
+
         let armature = comp._armature;
         if (!armature) return;
 
@@ -445,7 +446,7 @@ export default class ArmatureAssembler extends Assembler {
                 }
             }
         }
-        
+
         // sync attached node matrix
         renderer.worldMatDirty++;
         comp.attachUtil._syncAttachedNode();
