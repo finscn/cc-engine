@@ -144,13 +144,13 @@ export function getBuffer () {
         instanceBuffer.request(FixedRequestCount, 0);
         instanceBuffer.instanceOffset = 0;
         instanceBuffer.instanceStart = 0;
-        
+
         let _originReset = instanceBuffer.reset;
         instanceBuffer.reset = function () {
             _originReset.call(this);
 
             this.request(FixedRequestCount, 0);
-            
+
             this.instanceOffset = 0;
             this.instanceStart = 0;
         }

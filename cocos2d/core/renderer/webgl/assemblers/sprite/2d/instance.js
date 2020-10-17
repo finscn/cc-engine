@@ -1,193 +1,201 @@
+/****************************************************************************
+ Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
+ https://www.cocos.com/
 
-let instanceBuffer;
-let vbuf;
-let bufferIdx = 0;
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated engine source code (the "Software"), a limited,
+ worldwide, royalty-free, non-assignable, revocable and non-exclusive license
+ to use Cocos Creator solely to develop games on your target platforms. You shall
+ not use Cocos Creator software for developing other software or tools that's
+ used for developing games. You are not granted to publish, distribute,
+ sublicense, and/or sell copies of Cocos Creator.
 
-let instanceData = null;
-let instanceFloat32Data = null;
-let instanceDataDirty = false;
+ The software or tools in this License Agreement are licensed, not sold.
+ Xiamen Yaji Software Co., Ltd. reserves all rights not expressly granted to you.
 
-let resizeDirty = false;
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ ****************************************************************************/
 
-let instanceTexture = null;
-let instanceDataTexOptions = null;
+import Assembler2D from '../../../../assembler-2d';
+import { getBuffer, getVBuffer, vfmtInstance, vfmtDataBuffer, getFloat32DataBuffer, initFreeIndexBuffer, getDataIndex, releaseDataIndex, setInstanceDataDirty, getInstanceTexture, getResizeDirty} from '../../../instance-buffer';
 
-let SUPPORT_FLOAT_TEXTURE = false;
-let size = 64; //Texture Size, Must be an integer multiple of 4
-let FixedRequestCount = size * size / 4;
+export default class InstanceSpriteAssembler extends Assembler2D {
+    verticesCount = 1;
+    dataPerVert = vfmtDataBuffer._bytes / 4;
+    floatsPerVert = vfmtInstance._bytes / 4;
 
-let fixLength = 0;
-let freeIndexBuffer = [];
+    instanceDataIndex = -1;
+    dataBufferStart = 0;
 
-function checkFloatSupport () {
-    SUPPORT_FLOAT_TEXTURE = !!cc.sys.glExtension('OES_texture_float');
-}
+    constructor () {
+        super();
+        this.isInstance = true;
 
-export function initFreeIndexBuffer () {
-    if (fixLength === 0) {
-        checkFloatSupport();
-        freeIndexBuffer.length = fixLength = size * size / 4;
-        for(let i = 0; i < freeIndexBuffer.length; i++ ) {
-            freeIndexBuffer[i] = i;
+        getBuffer();
+    }
+
+    initBlockInfo () {
+        if (this.instanceDataIndex === -1) {
+            initFreeIndexBuffer();
+
+            this.instanceDataIndex = getDataIndex();
+            this.dataBufferStart = this.instanceDataIndex * this.dataPerVert;
+
+            this._updateMaterial();
         }
-        initBuffer();
-    } else if (freeIndexBuffer.length === 0) {
-        resizeDataBuffer();
-    }
-}
-
-function resizeDataBuffer () {
-    size *= 2;
-    freeIndexBuffer.length = size * size / 4 - fixLength;
-    for(let i = 0; i < freeIndexBuffer.length; i++ ) {
-        freeIndexBuffer[i] = i + fixLength;
-    }
-    fixLength = freeIndexBuffer.length + fixLength;
-
-    // resize buffer
-    let buffer = new Float32Array(size * size * 4);
-    buffer.set(instanceFloat32Data);
-    instanceData = instanceFloat32Data = buffer;
-    if(!SUPPORT_FLOAT_TEXTURE) {
-        instanceData = new Uint8Array(instanceFloat32Data.buffer);
     }
 
-    // resizeTexture
-    initTexture(SUPPORT_FLOAT_TEXTURE);
-}
-
-export function getDataIndex () {
-    return freeIndexBuffer.shift();
-}
-
-export function releaseDataIndex (index) {
-    freeIndexBuffer.unshift(index);
-}
-
-export const vfmtInstance = new cc.gfx.VertexFormat([
-    { name: 'a_block_idx', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 1 },
-])
-
-export const vfmtDataBuffer = new cc.gfx.VertexFormat([
-    { name: 'a_uv_matrix', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 4 },
-    { name: 'a_pos_local', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 4 },
-    { name: 'a_pos_rotate_scale', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 4 },
-    { name: 'a_pos_translate', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 2 },
-    { name: 'a_uv_rotate', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 1 },
-    { name: 'a_texture_id', type: cc.gfx.ATTR_TYPE_FLOAT32, num: 1 },
-])
-
-export function initBuffer () {
-
-    if (!instanceData) {
-        instanceData = instanceFloat32Data = new Float32Array(size * size * 4); //w x h x 4(RGBA)
-        if(!SUPPORT_FLOAT_TEXTURE) {
-            instanceData = new Uint8Array(instanceFloat32Data.buffer);
+    releaseBlockInfo () {
+        if (this.instanceDataIndex !== -1) {
+            releaseDataIndex(this.instanceDataIndex);
+            this.instanceDataIndex = -1;
+            setInstanceDataDirty(true);
         }
-        initTexture(SUPPORT_FLOAT_TEXTURE);
     }
-}
 
-function initTexture (IsFloatTexture) {
-    let pixelFormat = cc.Texture2D.PixelFormat.RGBA32F,
-    width = size,
-    height = size;
-    if (!IsFloatTexture) {
-        pixelFormat = cc.Texture2D.PixelFormat.RGBA8888;
-        width *= 4;
+    onEnable () {
+        super.onEnable();
+        this.initBlockInfo();
     }
-    let texture = instanceTexture || new cc.Texture2D();
-    let NEAREST = cc.Texture2D.Filter.NEAREST;
-    texture.setFilters(NEAREST, NEAREST);
-    texture.initWithData(instanceData, pixelFormat, width, height);
-    instanceTexture = texture;
-    instanceDataTexOptions = {
-        format: pixelFormat,
-        width: texture.width,
-        height: texture.height,
-        images: []
-    };
-    instanceDataTexOptions.images[0] = instanceData;
-    setResizeDirty(true);
-}
 
-export function getInstanceTexture () {
-    return instanceTexture;
-}
-
-export function commitInstanceData () {
-    if (instanceTexture) {
-        instanceTexture.update(instanceDataTexOptions);
+    onDisable () {
+        super.onDisable();
+        this.releaseBlockInfo();
     }
-}
 
-export function getInstanceDataDirty () {
-    return instanceDataDirty;
-}
-
-export function setInstanceDataDirty (value) {
-    instanceDataDirty = value;
-}
-
-export function getResizeDirty () {
-    return resizeDirty;
-}
-
-export function setResizeDirty (value) {
-    resizeDirty = value;
-}
-
-export function getBuffer () {
-    if (!instanceBuffer) {
-        instanceBuffer = cc.renderer._handle.getBuffer('mesh', vfmtInstance);
-        instanceBuffer.request(FixedRequestCount, 0);
-        instanceBuffer.instanceOffset = 0;
-        instanceBuffer.instanceStart = 0;
-
-        let _originReset = instanceBuffer.reset;
-        instanceBuffer.reset = function () {
-            _originReset.call(this);
-
-            this.request(FixedRequestCount, 0);
-
-            this.instanceOffset = 0;
-            this.instanceStart = 0;
+    _updateMaterial () {
+        let materials = this._renderComp.getMaterials();
+        for (let i = 0; i < materials.length; i++) {
+            let material = materials[i];
+            let texture = this.getDataTexture();
+            material.setProperty('instanceDataTexture', texture);
+            material.setProperty('instanceDataTextureSize', new Float32Array([texture.width, texture.height]));
+            material.define('CC_INSTANCE_TEXTURE_FLOAT32', !!cc.sys.glExtension('OES_texture_float'));
         }
-        instanceBuffer.isInstance = true;
-        instanceBuffer.instanceCount = function () {
-            return bufferIdx;
-        }
-        instanceBuffer.forwardIndiceStartToOffset = function () {
-            this.uploadData();
+    }
 
-            // this.instanceStart = this.instanceOffset;
-            this.instanceStart = 0;
-            this.instanceOffset = 0;
+    updateColor () {
 
-            this.switchBuffer();
-            this.request(FixedRequestCount, 0);
+    }
+
+    getVfmt () {
+        return vfmtInstance;
+    }
+
+    getBuffer () {
+        return getBuffer();
+    }
+
+    getVBuffer () {
+        return getVBuffer();
+    }
+
+    get32fDataBuffer () {
+        return getFloat32DataBuffer();
+    }
+
+    getDataTexture () {
+        return getInstanceTexture();
+    }
+
+    fillBuffers (comp, renderer) {
+        if (renderer.worldMatDirty) {
+            this.updateWorldVerts(comp);
         }
 
-        vbuf = instanceBuffer._vData;
+        let instanceBuffer = getBuffer();
+        let buffer = this.getVBuffer();
+        buffer[instanceBuffer.instanceOffset * this.floatsPerVert] = this.instanceDataIndex;
+        instanceBuffer.instanceOffset++;
+
+        cc.renderer._handle._buffer = instanceBuffer;
+        if (getResizeDirty()) {
+            this._updateMaterial();
+        }
     }
-    if ((instanceBuffer.instanceOffset + 1) === FixedRequestCount) {
-        FixedRequestCount *= 2;
-        instanceBuffer.request(FixedRequestCount, 0);
+
+    updateWorldVerts (comp) {
+        let buffer = this.get32fDataBuffer();
+        let start = this.dataBufferStart;
+
+        let m = comp.node._worldMatrix.m;
+        buffer[start + 8] = m[0];
+        buffer[start + 9] = m[1];
+        buffer[start + 10] = m[4];
+        buffer[start + 11] = m[5];
+        buffer[start + 12] = m[12];
+        buffer[start + 13] = m[13];
+
+        setInstanceDataDirty(true);
     }
-    return instanceBuffer;
-}
 
-export function getVBuffer () {
-    return instanceBuffer._vData;
-}
+    updateRenderData (sprite) {
+        this.packToDynamicAtlas(sprite, sprite._spriteFrame);
 
-export function getDataBuffer () {
-    initBuffer ();
-    return instanceData;
-}
+        if (sprite._vertsDirty) {
+            this.updateUVs(sprite);
+            this.updateVerts(sprite);
+            sprite._vertsDirty = false;
+        }
+    }
 
-export function getFloat32DataBuffer () {
-    initBuffer ();
-    return instanceFloat32Data;
+    updateUVs (sprite) {
+        let uv = sprite._spriteFrame.uv;
+        let buffer = this.get32fDataBuffer();
+        let start = this.dataBufferStart;
+        buffer[start + 0] = uv[0];
+        buffer[start + 1] = uv[1];
+
+        buffer[start + 2] = uv[6];
+        buffer[start + 3] = uv[7];
+
+        // rotated flag
+        buffer[start + 14] = sprite._spriteFrame.isRotated() ? 1 : 0;
+
+        // texture id
+        buffer[start + 15] = 1;
+    }
+
+    updateVerts (sprite) {
+        let node = sprite.node,
+            cw = node.width, ch = node.height,
+            appx = node.anchorX * cw, appy = node.anchorY * ch,
+            l, b, r, t;
+        if (sprite.trim) {
+            l = -appx;
+            b = -appy;
+            r = cw - appx;
+            t = ch - appy;
+        }
+        else {
+            let frame = sprite.spriteFrame,
+                ow = frame._originalSize.width, oh = frame._originalSize.height,
+                rw = frame._rect.width, rh = frame._rect.height,
+                offset = frame._offset,
+                scaleX = cw / ow, scaleY = ch / oh;
+            let trimLeft = offset.x + (ow - rw) / 2;
+            let trimRight = offset.x - (ow - rw) / 2;
+            let trimBottom = offset.y + (oh - rh) / 2;
+            let trimTop = offset.y - (oh - rh) / 2;
+            l = trimLeft * scaleX - appx;
+            b = trimBottom * scaleY - appy;
+            r = cw + trimRight * scaleX - appx;
+            t = ch + trimTop * scaleY - appy;
+        }
+
+        let buffer = this.get32fDataBuffer();
+        let start = this.dataBufferStart;
+        buffer[start + 4] = l;
+        buffer[start + 5] = b;
+        buffer[start + 6] = r;
+        buffer[start + 7] = t;
+        this.updateWorldVerts(sprite);
+    }
 }
