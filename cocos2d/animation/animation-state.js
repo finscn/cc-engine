@@ -51,11 +51,14 @@ var WrapModeMask = Types.WrapModeMask;
  */
 function AnimationState (clip, name) {
     Playable.call(this);
-    
+
     // Mark whether the current frame is played.
     // When set new time to animation state, we should ensure the frame at the specified time being played at next update.
     this._currentFramePlayed = false;
-    
+
+    // 用来控制动画跳帧
+    this._skip = false;
+
     this._delay = 0;
     this._delayTime = 0;
 
@@ -222,13 +225,13 @@ proto.onPlay = function () {
     // replay
     this.setTime(0);
     this._delayTime = this._delay;
-    
+
     cc.director.getAnimationManager().addAnimation(this);
 
     if (this.animator) {
         this.animator.addAnimation(this);
     }
-    
+
     this.emit('play', this);
 };
 
@@ -373,7 +376,7 @@ proto._needRevers = function (currentIterations) {
 
 proto.getWrappedInfo = function (time, info) {
     info = info || new WrappedInfo();
-    
+
     var stopped = false;
     var duration = this.duration;
     var repeatCount = this.repeatCount;
@@ -488,7 +491,7 @@ js.getset(proto, 'wrapMode',
         else {
             this.repeatCount = 1;
         }
-        
+
     }
 );
 
@@ -498,7 +501,7 @@ js.getset(proto, 'repeatCount',
     },
     function (value) {
         this._repeatCount = value;
-        
+
         var shouldWrap = this._wrapMode & WrapModeMask.ShouldWrap;
         var reverse = (this.wrapMode & WrapModeMask.Reverse) === WrapModeMask.Reverse;
         if (value === Infinity && !shouldWrap && !reverse) {
@@ -510,7 +513,7 @@ js.getset(proto, 'repeatCount',
     }
 );
 
-js.getset(proto, 'delay', 
+js.getset(proto, 'delay',
     function () {
         return this._delay;
     },

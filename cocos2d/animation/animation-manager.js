@@ -40,7 +40,7 @@ var AnimationManager = cc.Class({
         var array = iterator.array;
         for (iterator.i = 0; iterator.i < array.length; ++iterator.i) {
             var anim = array[iterator.i];
-            if (anim._isPlaying && !anim._isPaused) {
+            if (anim._isPlaying && !anim._isPaused && !anim._skip) {
                 anim.update(dt);
             }
         }
@@ -51,7 +51,7 @@ var AnimationManager = cc.Class({
             event.target[event.func].apply(event.target, event.args);
         }
         events.length = 0;
-        
+
     },
 
     destruct: function () {},
