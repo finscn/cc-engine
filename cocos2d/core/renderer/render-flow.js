@@ -21,7 +21,6 @@ let _cullingMask = 0;
 function RenderFlow() {
     this._func = init;
     this._next = null;
-    this._post = null;
 }
 
 let _proto = RenderFlow.prototype;
@@ -46,16 +45,27 @@ _proto._worldTransform = function(node) {
     node._mulMat(node._worldMatrix, node._parent._worldMatrix, t);
     node._renderFlag &= ~WORLD_TRANSFORM;
 
+    postFlow.push(_worldTransformPost);
     // this._next._func(node);
     // _batcher.worldMatDirty--;
+};
+
+function _worldTransformPost(node) {
+    _batcher.worldMatDirty--;
 };
 
 _proto._opacity = function(node) {
     _batcher.parentOpacityDirty++;
 
+    postFlow.push(_opacityPost);
     // this._next._func(node);
     // node._renderFlag &= ~OPACITY;
     // _batcher.parentOpacityDirty--;
+};
+
+function _opacityPost(node) {
+    node._renderFlag &= ~OPACITY;
+    _batcher.parentOpacityDirty--;
 };
 
 _proto._color = function(node) {
@@ -109,17 +119,13 @@ _proto._children = function(node) {
 
         // flows[c._renderFlag]._func(c);
         let currentFlow = flows[c._renderFlag];
-        let postCount = 0;
+        let postCount = postFlow.length;
         while (currentFlow && currentFlow !== EMPTY_FLOW) {
-            if (currentFlow._post) {
-                _postFlow.push(currentFlow);
-                postCount++;
-            }
             currentFlow._func(c);
             currentFlow = currentFlow._next;
         }
-        for (let _p = 0; _p < postCount; _p++) {
-            _postFlow.pop()._post(c);
+        for (let _p = postCount, _pl = postFlow.length; _p < _pl; _p++) {
+            postFlow.pop()(c);
         }
 
         c._color._val = colorVal;
@@ -159,16 +165,9 @@ function createFlow(flag, next) {
             break;
         case WORLD_TRANSFORM:
             flow._func = flow._worldTransform;
-            flow._post = function() {
-                _batcher.worldMatDirty--;
-            };
             break;
         case OPACITY:
             flow._func = flow._opacity;
-            flow._post = function(node) {
-                node._renderFlag &= ~OPACITY;
-                _batcher.parentOpacityDirty--;
-            };
             break;
         case COLOR:
             flow._func = flow._color;
@@ -206,22 +205,21 @@ function init(node) {
     let flag = node._renderFlag;
     let currentFlow = flows[flag] = getFlow(flag);
     // currentFlow._func(node);
-    let postCount = 0;
+    let postCount = postFlow.length;
     while (currentFlow && currentFlow !== EMPTY_FLOW) {
-        if (currentFlow._post) {
-            _postFlow.push(currentFlow);
-            postCount++;
-        }
         currentFlow._func(node);
         currentFlow = currentFlow._next;
     }
-    for (let _p = 0; _p < postCount; _p++) {
-        _postFlow.pop()._post(node);
+    for (let _p = postCount, _pl = postFlow.length; _p < _pl; _p++) {
+        postFlow.pop()(node);
     }
 }
 
+let postFlow = [];
+
 RenderFlow.flows = flows;
 RenderFlow.createFlow = createFlow;
+RenderFlow.postFlow = postFlow;
 
 // validate whether render component is ready to be rendered.
 let _validateList = [];
@@ -244,8 +242,6 @@ RenderFlow.validateRenderers = function() {
     _validateList.length = 0;
 };
 
-let _postFlow = [];
-
 RenderFlow.visitRootNode = function(rootNode) {
     RenderFlow.validateRenderers();
 
@@ -253,6 +249,7 @@ RenderFlow.visitRootNode = function(rootNode) {
     _cullingMask = rootNode._cullingMask;
 
     let withWorldTransform = rootNode._renderFlag & WORLD_TRANSFORM;
+
     if (withWorldTransform) {
         _batcher.worldMatDirty++;
         rootNode._calculWorldMatrix();
@@ -261,20 +258,16 @@ RenderFlow.visitRootNode = function(rootNode) {
 
     // flows[rootNode._renderFlag]._func(rootNode);
     let currentFlow = flows[rootNode._renderFlag];
-    let postCount = 0;
+    let postCount = postFlow.length;
     while (currentFlow && currentFlow !== EMPTY_FLOW) {
-        if (currentFlow._post) {
-            _postFlow.push(currentFlow);
-            postCount++;
-        }
         currentFlow._func(rootNode);
         currentFlow = currentFlow._next;
     }
-    for (let _p = 0; _p < postCount; _p++) {
-        _postFlow.pop()._post(rootNode);
+    for (let _p = postCount, _pl = postFlow.length; _p < _pl; _p++) {
+        postFlow.pop()(rootNode);
     }
 
-    if (withWorldTransform){
+    if (withWorldTransform) {
         _batcher.worldMatDirty--;
     }
 
