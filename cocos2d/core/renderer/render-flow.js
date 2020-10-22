@@ -115,7 +115,7 @@ _proto._children = function(node) {
         while (currentFlow && currentFlow !== EMPTY_FLOW) {
             if (currentFlow._post) {
                 postFlow.push(currentFlow);
-                postCount++
+                postCount++;
             }
             currentFlow._func(c);
             currentFlow = currentFlow._next;
@@ -233,7 +233,7 @@ RenderFlow.runNodeFlow = function(node) {
     while (currentFlow && currentFlow !== EMPTY_FLOW) {
         if (currentFlow._post) {
             postFlow.push(currentFlow);
-            postCount++
+            postCount++;
         }
         currentFlow._func(node);
         currentFlow = currentFlow._next;
