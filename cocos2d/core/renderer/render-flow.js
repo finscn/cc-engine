@@ -109,18 +109,19 @@ _proto._children = function(node) {
         c._color._fastSetA(c._opacity * opacity);
 
         // flows[c._renderFlag]._func(c);
-        // RenderFlow.runNodeFlow(c)
-        postFlow.length = 0
-        let currentFlow = flows[c._renderFlag]
+        // RenderFlow.runNodeFlow(c);
+        let currentFlow = flows[c._renderFlag];
+        let postCount = 0;
         while (currentFlow && currentFlow !== EMPTY_FLOW) {
             if (currentFlow._post) {
-                postFlow.push(currentFlow)
+                postFlow.push(currentFlow);
+                postCount++
             }
             currentFlow._func(c);
             currentFlow = currentFlow._next;
         }
-        for (let _p = postFlow.length - 1; _p >= 0; _p--) {
-            postFlow[_p]._post(c)
+        for (let _p = 0; _p < postCount; _p++) {
+            postFlow.pop()._post(c);
         }
 
         c._color._val = colorVal;
@@ -207,16 +208,17 @@ function init(node) {
     let flag = node._renderFlag;
     let currentFlow = flows[flag] = getFlow(flag);
     // currentFlow._func(node);
-    postFlow.length = 0
+    let postCount = 0;
     while (currentFlow && currentFlow !== EMPTY_FLOW) {
         if (currentFlow._post) {
-            postFlow.push(currentFlow)
+            postFlow.push(currentFlow);
+            postCount++;
         }
         currentFlow._func(node);
         currentFlow = currentFlow._next;
     }
-    for (let _p = postFlow.length - 1; _p >= 0; _p--) {
-        postFlow[_p]._post(node)
+    for (let _p = 0; _p < postCount; _p++) {
+        postFlow.pop()._post(node);
     }
 }
 
@@ -224,19 +226,20 @@ RenderFlow.flows = flows;
 RenderFlow.createFlow = createFlow;
 
 
-let postFlow = []
+let postFlow = [];
 RenderFlow.runNodeFlow = function(node) {
-    let currentFlow = flows[node._renderFlag]
-    postFlow.length = 0
+    let currentFlow = flows[node._renderFlag];
+    let postCount = 0;
     while (currentFlow && currentFlow !== EMPTY_FLOW) {
         if (currentFlow._post) {
-            postFlow.push(currentFlow)
+            postFlow.push(currentFlow);
+            postCount++
         }
         currentFlow._func(node);
         currentFlow = currentFlow._next;
     }
-    for (let _p = postFlow.length - 1; _p >= 0; _p--) {
-        postFlow[_p]._post(node)
+    for (let _p = 0; _p < postCount; _p++) {
+        postFlow.pop()._post(node);
     }
 }
 
