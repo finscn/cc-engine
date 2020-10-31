@@ -219,6 +219,7 @@ function createInvokeImpl (indiePath, useDt, ensureFlag, fastPath) {
         fastPath = useDt ? Function('it', 'dt', body) : Function('it', body);
         indiePath = Function('c', 'dt', indiePath);
     }
+
     return function (iterator, dt) {
         try {
             fastPath(iterator, dt);
@@ -246,9 +247,23 @@ function createInvokeImpl (indiePath, useDt, ensureFlag, fastPath) {
     };
 }
 
+function createInvokeImplFast(indiePath, useDt, ensureFlag, fastPath){
+    if (CC_SUPPORT_JIT) {
+        let body = 'var a=it.array;' +
+                   'for(it.i=0;it.i<a.length;++it.i){' +
+                   'var c=a[it.i];' +
+                   indiePath +
+                   '}';
+        fastPath = useDt ? Function('it', 'dt', body) : Function('it', body);
+        // indiePath = Function('c', 'dt', indiePath);
+    }
+
+    return fastPath;
+}
+
 var invokeStart = CC_SUPPORT_JIT ?
-    createInvokeImpl('c.start();c._objFlags|=' + IsStartCalled, false, IsStartCalled) :
-    createInvokeImpl(function (c) {
+    createInvokeImplFast('c.start();c._objFlags|=' + IsStartCalled, false, IsStartCalled) :
+    createInvokeImplFast(function (c) {
             c.start();
             c._objFlags |= IsStartCalled;
         },
@@ -263,9 +278,10 @@ var invokeStart = CC_SUPPORT_JIT ?
             }
         }
     );
+
 var invokeUpdate = CC_SUPPORT_JIT ?
-    createInvokeImpl('c.update(dt)', true) :
-    createInvokeImpl(function (c, dt) {
+    createInvokeImplFast('c.update(dt)', true) :
+    createInvokeImplFast(function (c, dt) {
             c.update(dt);
         },
         true,
@@ -277,9 +293,10 @@ var invokeUpdate = CC_SUPPORT_JIT ?
             }
         }
     );
+
 var invokeLateUpdate = CC_SUPPORT_JIT ?
-    createInvokeImpl('c.lateUpdate(dt)', true) :
-    createInvokeImpl(function (c, dt) {
+    createInvokeImplFast('c.lateUpdate(dt)', true) :
+    createInvokeImplFast(function (c, dt) {
             c.lateUpdate(dt);
         },
         true,
@@ -314,6 +331,7 @@ var ComponentScheduler = cc.Class({
         LifeCycleInvoker,
         OneOffInvoker,
         createInvokeImpl,
+        createInvokeImplFast,
         invokeOnEnable: CC_EDITOR ? function (iterator) {
             var compScheduler = cc.director._compScheduler;
             var array = iterator.array;
