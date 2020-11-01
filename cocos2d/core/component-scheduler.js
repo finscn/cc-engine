@@ -247,7 +247,7 @@ function createInvokeImpl (indiePath, useDt, ensureFlag, fastPath) {
     };
 }
 
-function createInvokeImplFast(indiePath, useDt, ensureFlag, fastPath){
+function createInvokeImplSimple(indiePath, useDt, ensureFlag, fastPath){
     if (CC_SUPPORT_JIT) {
         let body = 'var a=it.array;' +
                    'for(it.i=0;it.i<a.length;++it.i){' +
@@ -262,8 +262,8 @@ function createInvokeImplFast(indiePath, useDt, ensureFlag, fastPath){
 }
 
 var invokeStart = CC_SUPPORT_JIT ?
-    createInvokeImplFast('c.start();c._objFlags|=' + IsStartCalled, false, IsStartCalled) :
-    createInvokeImplFast(function (c) {
+    createInvokeImplSimple('c.start();c._objFlags|=' + IsStartCalled, false, IsStartCalled) :
+    createInvokeImplSimple(function (c) {
             c.start();
             c._objFlags |= IsStartCalled;
         },
@@ -280,8 +280,8 @@ var invokeStart = CC_SUPPORT_JIT ?
     );
 
 var invokeUpdate = CC_SUPPORT_JIT ?
-    createInvokeImplFast('c.update(dt)', true) :
-    createInvokeImplFast(function (c, dt) {
+    createInvokeImplSimple('c.update(dt)', true) :
+    createInvokeImplSimple(function (c, dt) {
             c.update(dt);
         },
         true,
@@ -295,8 +295,8 @@ var invokeUpdate = CC_SUPPORT_JIT ?
     );
 
 var invokeLateUpdate = CC_SUPPORT_JIT ?
-    createInvokeImplFast('c.lateUpdate(dt)', true) :
-    createInvokeImplFast(function (c, dt) {
+    createInvokeImplSimple('c.lateUpdate(dt)', true) :
+    createInvokeImplSimple(function (c, dt) {
             c.lateUpdate(dt);
         },
         true,
@@ -331,7 +331,7 @@ var ComponentScheduler = cc.Class({
         LifeCycleInvoker,
         OneOffInvoker,
         createInvokeImpl,
-        createInvokeImplFast,
+        createInvokeImplSimple,
         invokeOnEnable: CC_EDITOR ? function (iterator) {
             var compScheduler = cc.director._compScheduler;
             var array = iterator.array;
