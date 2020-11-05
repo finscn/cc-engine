@@ -3633,7 +3633,7 @@ let NodeDefines = {
         this._groupIndex = groupIndex || 0;
         this._cullingMask = 1 << groupIndex;
         if (CC_JSB && CC_NATIVERENDERER) {
-            node._proxy && node._proxy.updateCullingMask();
+            this._proxy && this._proxy.updateCullingMask();
         }
     },
 
