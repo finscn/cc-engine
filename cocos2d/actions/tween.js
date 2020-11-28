@@ -98,6 +98,11 @@ let TweenAction = cc.Class({
             let current = prop.current = (prop.progress || progress)(prop.start, prop.end, prop.current, time);
             target[name] = current;
         }
+
+        let onUpdate = this._opts.onUpdate;
+        if (onUpdate) {
+            onUpdate(target, t)
+        }
     },
 
     progress (start, end, current, t) {
@@ -216,7 +221,7 @@ Tween.stopAllByTarget = function (target) {
  * Insert an action or tween to this sequence
  * !#zh
  * 插入一个 action 或者 tween 到队列中
- * @method then 
+ * @method then
  * @param {Action|Tween} other
  * @return {Tween}
  * @typescript then(other: Action|Tween<T>): Tween<T>
@@ -412,7 +417,7 @@ Object.assign(Tween.prototype, {
      */
     flipX () {
         return this.call(() => { this._target.scaleX *= -1; }, this);
-        
+
     },
     /**
      * !#en Flips target's scaleY
