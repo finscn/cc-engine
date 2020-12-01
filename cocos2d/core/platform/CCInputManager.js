@@ -597,7 +597,7 @@ let inputManager = {
         this._accelCurTime += dt;
     },
 
-    getTouchCount () {
+    getGlobalTouchCount () {
         return this._touchCount;
     },
 
