@@ -66,7 +66,7 @@ var SpriteType = cc.Enum({
      * @property {Number} MESH
      */
     MESH: 4,
-    
+
     QuadInstance: 5,
 });
 
@@ -493,6 +493,8 @@ var Sprite = cc.Class({
     },
 
     _applySpriteFrame (oldFrame) {
+        if (!this.isValid)  return;
+
         let oldTexture = oldFrame && oldFrame.getTexture();
         if (oldTexture && !oldTexture.loaded) {
             oldFrame.off('load', this._applySpriteSize, this);
