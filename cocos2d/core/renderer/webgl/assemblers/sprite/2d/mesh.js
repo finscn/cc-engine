@@ -29,7 +29,7 @@ export default class MeshSpriteAssembler extends Assembler2D {
     initData (sprite) {
         this._renderData.createFlexData(0, 4, 6, this.getVfmt());
     }
-    
+
     updateRenderData (sprite) {
         this.packToDynamicAtlas(sprite, sprite._spriteFrame);
 
@@ -115,6 +115,16 @@ export default class MeshSpriteAssembler extends Assembler2D {
                 let offset = i * 2;
                 local[offset] = (x[i] - trimX) * scaleX - appx;
                 local[offset + 1] = (originalHeight - y[i] - trimY) * scaleY - appy;
+            }
+        }
+        if (frame._flipX) {
+            for (let i = 0, l = this.verticesCount; i < l; i++) {
+                local[i * 2] = contentWidth - local[i * 2] - 2 * appx;
+            }
+        }
+        if (frame._flipY) {
+            for (let i = 0, l = this.verticesCount; i < l; i++) {
+                local[i * 2 + 1] = contentHeight - local[i * 2 + 1] - 2 * appy;
             }
         }
     }
