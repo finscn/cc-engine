@@ -191,7 +191,7 @@ var handleQueue = function (maxConcurrency, maxRequestsPerFrame) {
  * 3. Audio
  * 4. Assets
  * 5. Scripts
- * 
+ *
  * !#zh
  * 管理所有下载过程，downloader 是个单例，所有成员能通过 `cc.assetManager.downloader` 访问，它能下载以下几种类型的文件：
  * 1. 文本
@@ -199,20 +199,20 @@ var handleQueue = function (maxConcurrency, maxRequestsPerFrame) {
  * 3. 音频
  * 4. 资源
  * 5. 脚本
- * 
+ *
  * @class Downloader
  */
 var downloader = {
 
     _remoteServerAddress: '',
-    
+
     /**
-     * !#en 
+     * !#en
      * The address of remote server
-     * 
+     *
      * !#zh
      * 远程服务器地址
-     * 
+     *
      * @property remoteServerAddress
      * @type {string}
      * @default ''
@@ -222,12 +222,12 @@ var downloader = {
     },
 
     /**
-     * !#en 
+     * !#en
      * The maximum number of concurrent when downloading
-     * 
+     *
      * !#zh
      * 下载时的最大并发数
-     * 
+     *
      * @property maxConcurrency
      * @type {number}
      * @default 6
@@ -235,12 +235,12 @@ var downloader = {
     maxConcurrency: 6,
 
     /**
-     * !#en 
+     * !#en
      * The maximum number of request can be launched per frame when downloading
-     * 
+     *
      * !#zh
      * 下载时每帧可以启动的最大请求数
-     * 
+     *
      * @property maxRequestsPerFrame
      * @type {number}
      * @default 6
@@ -250,10 +250,10 @@ var downloader = {
     /**
      * !#en
      * The max number of retries when fail
-     *  
+     *
      * !#zh
      * 失败重试次数
-     * 
+     *
      * @property maxRetryCount
      * @type {Number}
      */
@@ -266,10 +266,10 @@ var downloader = {
     /**
      * !#en
      * Wait for while before another retry, unit: ms
-     * 
+     *
      * !#zh
      * 重试的间隔时间
-     * 
+     *
      * @property retryInterval
      * @type {Number}
      */
@@ -280,10 +280,10 @@ var downloader = {
     /*
      * !#en
      * Use Image element to download image
-     *  
+     *
      * !#zh
      * 使用 Image 元素来下载图片
-     * 
+     *
      * @method downloadDomImage
      * @param {string} url - Url of the image
      * @param {Object} [options] - Some optional paramters
@@ -291,10 +291,10 @@ var downloader = {
      * @param {Error} onComplete.err - The occurred error, null indicetes success
      * @param {HTMLImageElement} onComplete.img - The loaded Image element, null if error occurred
      * @returns {HTMLImageElement} The image element
-     * 
+     *
      * @example
      * downloadDomImage('http://example.com/test.jpg', null, (err, img) => console.log(err));
-     * 
+     *
      * @typescript
      * downloadDomImage(url: string, options?: Record<string, any> , onComplete?: (err: Error, img: HTMLImageElement) => void): HTMLImageElement
      * downloadDomImage(url: string, onComplete?: (err: Error, img: HTMLImageElement) => void): HTMLImageElement
@@ -304,10 +304,10 @@ var downloader = {
     /*
      * !#en
      * Use audio element to download audio
-     * 
+     *
      * !#zh
-     * 使用 Audio 元素来下载音频 
-     * 
+     * 使用 Audio 元素来下载音频
+     *
      * @method downloadDomAudio
      * @param {string} url - Url of the audio
      * @param {Object} [options] - Some optional paramters
@@ -315,23 +315,23 @@ var downloader = {
      * @param {Error} onComplete.err - The occurred error, null indicetes success
      * @param {HTMLAudioElement} onComplete.audio - The loaded audio element, null if error occurred
      * @returns {HTMLAudioElement} The audio element
-     * 
+     *
      * @example
      * downloadDomAudio('http://example.com/test.mp3', null, (err, audio) => console.log(err));
-     * 
+     *
      * @typescript
      * downloadDomAudio(url: string, options?: Record<string, any>, onComplete?: (err: Error, audio: HTMLAudioElement) => void): HTMLAudioElement
      * downloadDomAudio(url: string, onComplete?: (err: Error, audio: HTMLAudioElement) => void): HTMLAudioElement
      */
     downloadDomAudio: downloadDomAudio,
-    
+
     /*
      * !#en
      * Use XMLHttpRequest to download file
-     * 
+     *
      * !#zh
      * 使用 XMLHttpRequest 来下载文件
-     * 
+     *
      * @method downloadFile
      * @param {string} url - Url of the file
      * @param {Object} [options] - Some optional paramters
@@ -347,10 +347,10 @@ var downloader = {
      * @param {Error} onComplete.err - The occurred error, null indicetes success
      * @param {*} onComplete.response - The loaded content, null if error occurred, type of content can be indicated by options.responseType
      * @returns {XMLHttpRequest} The xhr to be send
-     * 
+     *
      * @example
      * downloadFile('http://example.com/test.bin', {responseType: 'arraybuffer'}, null, (err, arrayBuffer) => console.log(err));
-     * 
+     *
      * @typescript
      * downloadFile(url: string, options?: Record<string, any>, onFileProgress?: (loaded: Number, total: Number) => void, onComplete?: (err: Error, response: any) => void): XMLHttpRequest
      * downloadFile(url: string, onFileProgress?: (loaded: Number, total: Number) => void, onComplete?: (err: Error, response: any) => void): XMLHttpRequest
@@ -361,21 +361,21 @@ var downloader = {
 
     /*
      * !#en
-     * Load script 
-     * 
+     * Load script
+     *
      * !#zh
      * 加载脚本
-     * 
+     *
      * @method downloadScript
      * @param {string} url - Url of the script
      * @param {Object} [options] - Some optional paramters
      * @param {boolean} [options.isAsync] - Indicate whether or not loading process should be async
      * @param {Function} [onComplete] - Callback when script loaded or failed
      * @param {Error} onComplete.err - The occurred error, null indicetes success
-     * 
+     *
      * @example
      * downloadScript('http://localhost:8080/index.js', null, (err) => console.log(err));
-     * 
+     *
      * @typescript
      * downloadScript(url: string, options?: Record<string, any>, onComplete?: (err: Error) => void): void;
      * downloadScript(url: string, onComplete?: (err: Error) => void): void;
@@ -392,21 +392,21 @@ var downloader = {
     /**
      * !#en
      * Register custom handler if you want to change default behavior or extend downloader to download other format file
-     * 
+     *
      * !#zh
-     * 当你想修改默认行为或者拓展 downloader 来下载其他格式文件时可以注册自定义的 handler 
-     * 
+     * 当你想修改默认行为或者拓展 downloader 来下载其他格式文件时可以注册自定义的 handler
+     *
      * @method register
      * @param {string|Object} type - Extension likes '.jpg' or map likes {'.jpg': jpgHandler, '.png': pngHandler}
      * @param {Function} [handler] - handler
      * @param {string} handler.url - url
      * @param {Object} handler.options - some optional paramters will be transferred to handler.
      * @param {Function} handler.onComplete - callback when finishing downloading
-     * 
+     *
      * @example
      * downloader.register('.tga', (url, options, onComplete) => onComplete(null, null));
      * downloader.register({'.tga': (url, options, onComplete) => onComplete(null, null), '.ext': (url, options, onComplete) => onComplete(null, null)});
-     * 
+     *
      * @typescript
      * register(type: string, handler: (url: string, options: Record<string, any>, onComplete: (err: Error, content: any) => void) => void): void
      * register(map: Record<string, (url: string, options: Record<string, any>, onComplete: (err: Error, content: any) => void) => void>): void
@@ -422,11 +422,11 @@ var downloader = {
 
     /**
      * !#en
-     * Use corresponding handler to download file under limitation 
-     * 
+     * Use corresponding handler to download file under limitation
+     *
      * !#zh
      * 在限制下使用对应的 handler 来下载文件
-     * 
+     *
      * @method download
      * @param {string} url - The url should be downloaded
      * @param {string} type - The type indicates that which handler should be used to download, such as '.jpg'
@@ -439,10 +439,10 @@ var downloader = {
      * @param {Function} onComplete - callback when finishing downloading
      * @param {Error} onComplete.err - The occurred error, null indicetes success
      * @param {*} onComplete.contetnt - The downloaded file
-     * 
+     *
      * @example
      * download('http://example.com/test.tga', '.tga', {onFileProgress: (loaded, total) => console.lgo(loaded/total)}, onComplete: (err) => console.log(err));
-     * 
+     *
      * @typescript
      * download(id: string, url: string, type: string, options: Record<string, any>, onComplete: (err: Error, content: any) => void): void
      */
@@ -463,22 +463,22 @@ var downloader = {
                     if (item.priority < priority) {
                         item.priority = priority;
                         _queueDirty = true;
-                    } 
+                    }
                     return;
                 }
-            } 
+            }
         }
         else {
             // if download fail, should retry
-            var maxRetryCount = options.maxRetryCount || this.maxRetryCount;
-            var maxConcurrency = options.maxConcurrency || this.maxConcurrency;
-            var maxRequestsPerFrame = options.maxRequestsPerFrame || this.maxRequestsPerFrame;
+            var maxRetryCount = typeof options.maxRetryCount !== 'undefined' ? options.maxRetryCount : this.maxRetryCount;
+            var maxConcurrency = typeof options.maxConcurrency !== 'undefined' ? options.maxConcurrency : this.maxConcurrency;
+            var maxRequestsPerFrame = typeof options.maxRequestsPerFrame !== 'undefined' ? options.maxRequestsPerFrame : this.maxRequestsPerFrame;
 
             function process (index, callback) {
                 if (index === 0) {
                     _downloading.add(id, [onComplete]);
                 }
-                
+
                 if (!self.limited) return func(urlAppendTimestamp(url), options, callback);
 
                 // refresh
@@ -505,7 +505,7 @@ var downloader = {
                     // when number of request up to limitation, cache the rest
                     _queue.push({ id, priority: options.priority || 0, invoke });
                     _queueDirty = true;
-    
+
                     if (!_checkNextPeriod && _totalNum < maxConcurrency) {
                         callInNextTick(handleQueue, maxConcurrency, maxRequestsPerFrame);
                         _checkNextPeriod = true;
@@ -521,7 +521,7 @@ var downloader = {
                     callbacks[i](err, result);
                 }
             }
-    
+
             retry(process, maxRetryCount, this.retryInterval, finale);
         }
     }
