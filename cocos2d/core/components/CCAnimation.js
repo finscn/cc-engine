@@ -395,6 +395,9 @@ let Animation = cc.Class({
         if (name) {
             let state = this._nameToState[name];
             if (state) {
+                if (!state.curveLoaded) {
+                    this._animator._reloadClip(state);
+                }
                 this._animator.resumeState(state);
             }
         }
@@ -415,6 +418,9 @@ let Animation = cc.Class({
         if (name) {
             let state = this._nameToState[name];
             if (state) {
+                if (!state.curveLoaded) {
+                    this._animator._reloadClip(state);
+                }
                 this._animator.setStateTime(state, time);
             }
         }
@@ -572,6 +578,9 @@ let Animation = cc.Class({
         if (name) {
             let state = this._nameToState[name];
             if (state) {
+                if (!state.curveLoaded) {
+                    this._animator._reloadClip(state);
+                }
                 state.sample();
             }
         }
