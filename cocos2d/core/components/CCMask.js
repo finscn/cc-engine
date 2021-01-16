@@ -133,7 +133,7 @@ let Mask = cc.Class({
                     this.alphaThreshold = 0;
                     this._updateGraphics();
                 }
-                
+
                 this._activateMaterial();
             },
             type: MaskType,
@@ -168,7 +168,7 @@ let Mask = cc.Class({
                     }
                 }
                 this._spriteFrame = value;
-                
+
                 this.setVertsDirty();
                 this._updateMaterial();
             },
@@ -283,7 +283,7 @@ let Mask = cc.Class({
         this.node.off(cc.Node.EventType.SCALE_CHANGED, this._updateGraphics, this);
         this.node.off(cc.Node.EventType.SIZE_CHANGED, this._updateGraphics, this);
         this.node.off(cc.Node.EventType.ANCHOR_CHANGED, this._updateGraphics, this);
-        
+
         this.node._renderFlag &= ~RenderFlow.FLAG_POST_RENDER;
     },
 
@@ -303,7 +303,7 @@ let Mask = cc.Class({
         if (this._type !== MaskType.IMAGE_STENCIL) return;
 
         let spriteFrame = this._spriteFrame;
-        if (spriteFrame && 
+        if (spriteFrame &&
             spriteFrame.textureLoaded()) {
             return;
         }
@@ -313,7 +313,7 @@ let Mask = cc.Class({
 
     _activateMaterial () {
         this._createGraphics();
-        
+
         // Init material
         let material = this._materials[0];
         if (!material) {
@@ -338,7 +338,7 @@ let Mask = cc.Class({
         if (!this._enableMaterial) {
             this._enableMaterial = MaterialVariant.createWithBuiltin('2d-sprite', this);
         }
-    
+
         if (!this._exitMaterial) {
             this._exitMaterial = MaterialVariant.createWithBuiltin('2d-sprite', this);
             this._exitMaterial.setStencilEnabled(gfx.STENCIL_DISABLE);
@@ -377,6 +377,7 @@ let Mask = cc.Class({
     },
 
     _updateGraphics () {
+        if (!this.enabledInHierarchy) return;
         let node = this.node;
         let graphics = this._graphics;
         // Share render data with graphics content
@@ -428,7 +429,7 @@ let Mask = cc.Class({
             w = size.width,
             h = size.height,
             testPt = _vec2_temp;
-        
+
         node._updateWorldMatrix();
         // If scale is 0, it can't be hit.
         if (!Mat4.invert(_mat4_temp, node._worldMatrix)) {
@@ -465,7 +466,7 @@ let Mask = cc.Class({
     },
 
     disableRender () {
-        this.node._renderFlag &= ~(RenderFlow.FLAG_RENDER | RenderFlow.FLAG_UPDATE_RENDER_DATA | 
+        this.node._renderFlag &= ~(RenderFlow.FLAG_RENDER | RenderFlow.FLAG_UPDATE_RENDER_DATA |
                                    RenderFlow.FLAG_POST_RENDER);
     },
 });
