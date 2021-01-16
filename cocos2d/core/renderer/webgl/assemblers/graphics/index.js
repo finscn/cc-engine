@@ -76,7 +76,7 @@ vfmtPosColorSdf.name = 'vfmtPosColorSdf';
 export default class GraphicsAssembler extends Assembler {
     constructor (graphics) {
         super(graphics);
-        
+
         this._buffer = null;
         this._buffers = [];
         this._bufferOffset = 0;
@@ -157,7 +157,7 @@ export default class GraphicsAssembler extends Assembler {
     }
 
     genBuffer (graphics, cverts) {
-        let buffers = this.getBuffers(); 
+        let buffers = this.getBuffers();
         let buffer = buffers[this._bufferOffset];
         let meshbuffer = buffer.meshbuffer;
 
@@ -166,7 +166,7 @@ export default class GraphicsAssembler extends Assembler {
             maxVertsCount * 3 > MAX_INDICE) {
             ++this._bufferOffset;
             maxVertsCount = cverts;
-            
+
             if (this._bufferOffset < buffers.length) {
                 buffer = buffers[this._bufferOffset];
             }
@@ -191,7 +191,7 @@ export default class GraphicsAssembler extends Assembler {
 
         this._flattenPaths(graphics._impl);
         this._expandStroke(graphics);
-    
+
         graphics._impl._updatePathOffset = true;
     }
 
@@ -209,13 +209,13 @@ export default class GraphicsAssembler extends Assembler {
             miterLimit = graphics.miterLimit;
 
         let impl = graphics._impl;
-    
+
         let ncap = curveDivs(w, PI, impl._tessTol);
-    
+
         this._calculateJoins(impl, w, lineJoin, miterLimit);
-    
+
         let paths = impl._paths;
-        
+
         // Calculate max vertex usage.
         let cverts = 0;
         for (let i = impl._pathOffset, l = impl._pathLength; i < l; i++) {
@@ -234,12 +234,12 @@ export default class GraphicsAssembler extends Assembler {
                 }
             }
         }
-        
+
         let buffer = this.genBuffer(graphics, cverts),
             meshbuffer = buffer.meshbuffer,
             vData = meshbuffer._vData,
             iData = meshbuffer._iData;
-            
+
         for (let i = impl._pathOffset, l = impl._pathLength; i < l; i++) {
             let path = paths[i];
             let pts = path.points;
@@ -264,15 +264,15 @@ export default class GraphicsAssembler extends Assembler {
             }
 
             p1 = p1 || p0;
-    
+
             if (!loop) {
                 // Add cap
                 let dPos = p1.sub(p0);
                 dPos.normalizeSelf();
-    
+
                 let dx = dPos.x;
                 let dy = dPos.y;
-    
+
                 if (lineCap === LineCap.BUTT)
                     this._buttCapStart(p0, dx, dy, w, 0);
                 else if (lineCap === LineCap.SQUARE)
@@ -280,7 +280,7 @@ export default class GraphicsAssembler extends Assembler {
                 else if (lineCap === LineCap.ROUND)
                     this._roundCapStart(p0, dx, dy, w, ncap);
             }
-    
+
             for (let j = start; j < end; ++j) {
                 if (lineJoin === LineJoin.ROUND) {
                     this._roundJoin(p0, p1, w, w, ncap);
@@ -292,11 +292,11 @@ export default class GraphicsAssembler extends Assembler {
                     this._vset(p1.x + p1.dmx * w, p1.y + p1.dmy * w, 1);
                     this._vset(p1.x - p1.dmx * w, p1.y - p1.dmy * w, -1);
                 }
-    
+
                 p0 = p1;
                 p1 = pts[j + 1];
             }
-    
+
             if (loop) {
                 // Loop it
                 let floatCount = this.getVfmtFloatCount();
@@ -307,10 +307,10 @@ export default class GraphicsAssembler extends Assembler {
                 // Add cap
                 let dPos = p1.sub(p0);
                 dPos.normalizeSelf();
-    
+
                 let dx = dPos.x;
                 let dy = dPos.y;
-    
+
                 if (lineCap === LineCap.BUTT)
                     this._buttCapEnd(p1, dx, dy, w, 0);
                 else if (lineCap === LineCap.SQUARE)
@@ -330,7 +330,7 @@ export default class GraphicsAssembler extends Assembler {
             buffer.indiceStart = indicesOffset;
         }
     }
-    
+
     _expandFill (graphics) {
         let impl = graphics._impl;
 
@@ -354,20 +354,20 @@ export default class GraphicsAssembler extends Assembler {
             let path = paths[i];
             let pts = path.points;
             let pointsLength = pts.length;
-    
+
             if (pointsLength === 0) {
                 continue;
             }
-    
+
             // Calculate shape vertices.
             let offset = buffer.vertexStart;
-    
+
             for (let j = 0; j < pointsLength; ++j) {
                 this._vset(pts[j].x, pts[j].y);
             }
-    
+
             let indicesOffset = buffer.indiceStart;
-    
+
             if (path.complex) {
                 let earcutData = [];
                 let floatCount = this.getVfmtFloatCount();
@@ -376,13 +376,13 @@ export default class GraphicsAssembler extends Assembler {
                     earcutData.push(vData[vDataOffset]);
                     earcutData.push(vData[vDataOffset+1]);
                 }
-    
+
                 let newIndices = Earcut(earcutData, null, 2);
-    
+
                 if (!newIndices || newIndices.length === 0) {
                     continue;
                 }
-    
+
                 for (let j = 0, nIndices = newIndices.length; j < nIndices; j++) {
                     iData[indicesOffset++] = newIndices[j] + offset;
                 }
@@ -402,33 +402,33 @@ export default class GraphicsAssembler extends Assembler {
 
     _calculateJoins (impl, w, lineJoin, miterLimit) {
         let iw = 0.0;
-    
+
         if (w > 0.0) {
             iw = 1 / w;
         }
-    
+
         // Calculate which joins needs extra vertices to append, and gather vertex count.
         let paths = impl._paths;
         for (let i = impl._pathOffset, l = impl._pathLength; i < l; i++) {
             let path = paths[i];
-    
+
             let pts = path.points;
             let ptsLength = pts.length;
             let p0 = pts[ptsLength - 1];
             let p1 = pts[0];
             let nleft = 0;
-    
+
             path.nbevel = 0;
-    
+
             for (let j = 0; j < ptsLength; j++) {
                 let dmr2, cross, limit;
-    
+
                 // perp normals
                 let dlx0 = p0.dy;
                 let dly0 = -p0.dx;
                 let dlx1 = p1.dy;
                 let dly1 = -p1.dx;
-    
+
                 // Calculate extrusions
                 p1.dmx = (dlx0 + dlx1) * 0.5;
                 p1.dmy = (dly0 + dly1) * 0.5;
@@ -441,52 +441,60 @@ export default class GraphicsAssembler extends Assembler {
                     p1.dmx *= scale;
                     p1.dmy *= scale;
                 }
-    
+
                 // Keep track of left turns.
                 cross = p1.dx * p0.dy - p0.dx * p1.dy;
                 if (cross > 0) {
                     nleft++;
                     p1.flags |= PointFlags.PT_LEFT;
                 }
-    
+
                 // Calculate if we should use bevel or miter for inner join.
                 limit = max(11, min(p0.len, p1.len) * iw);
                 if (dmr2 * limit * limit < 1) {
                     p1.flags |= PointFlags.PT_INNERBEVEL;
                 }
-    
+
+                // Check whether dm length is too long
+                let dmwx = p1.dmx * w;
+                let dmwy = p1.dmy * w;
+                let dmlen = dmwx*dmwx + dmwy*dmwy;
+                if (dmlen > (p1.len * p1.len) || dmlen > (p0.len * p0.len)) {
+                    p1.flags |= PointFlags.PT_INNERBEVEL;
+                }
+
                 // Check to see if the corner needs to be beveled.
                 if (p1.flags & PointFlags.PT_CORNER) {
                     if (dmr2 * miterLimit * miterLimit < 1 || lineJoin === LineJoin.BEVEL || lineJoin === LineJoin.ROUND) {
                         p1.flags |= PointFlags.PT_BEVEL;
                     }
                 }
-    
+
                 if ((p1.flags & (PointFlags.PT_BEVEL | PointFlags.PT_INNERBEVEL)) !== 0) {
                     path.nbevel++;
                 }
-    
+
                 p0 = p1;
                 p1 = pts[j + 1];
             }
         }
     }
-    
+
     _flattenPaths (impl) {
         let paths = impl._paths;
         for (let i = impl._pathOffset, l = impl._pathLength; i < l; i++) {
             let path = paths[i];
             let pts = path.points;
-    
+
             let p0 = pts[pts.length - 1];
             let p1 = pts[0];
-    
+
             if (pts.length > 2 && p0.equals(p1)) {
                 path.closed = true;
                 pts.pop();
                 p0 = pts[pts.length - 1];
             }
-    
+
             for (let j = 0, size = pts.length; j < size; j++) {
                 // Calculate segment direction and length
                 let dPos = p1.sub(p0);
@@ -506,7 +514,7 @@ export default class GraphicsAssembler extends Assembler {
         let x = p1.x;
         let y = p1.y;
         let x0, y0, x1, y1;
-    
+
         if (bevel !== 0) {
             x0 = x + p0.dy * w;
             y0 = y - p0.dx * w;
@@ -516,16 +524,16 @@ export default class GraphicsAssembler extends Assembler {
             x0 = x1 = x + p1.dmx * w;
             y0 = y1 = y + p1.dmy * w;
         }
-    
+
         return [x0, y0, x1, y1];
     }
-    
+
     _buttCapStart (p, dx, dy, w, d) {
         let px = p.x - dx * d;
         let py = p.y - dy * d;
         let dlx = dy;
         let dly = -dx;
-    
+
         this._vset(px + dlx * w, py + dly * w, 1);
         this._vset(px - dlx * w, py - dly * w, -1);
     }
@@ -535,17 +543,17 @@ export default class GraphicsAssembler extends Assembler {
         let py = p.y + dy * d;
         let dlx = dy;
         let dly = -dx;
-    
+
         this._vset(px + dlx * w, py + dly * w, 1);
         this._vset(px - dlx * w, py - dly * w, -1);
     }
-    
+
     _roundCapStart (p, dx, dy, w, ncap) {
         let px = p.x;
         let py = p.y;
         let dlx = dy;
         let dly = -dx;
-    
+
         for (let i = 0; i < ncap; i++) {
             let a = i / (ncap - 1) * PI;
             let ax = cos(a) * w,
@@ -556,13 +564,13 @@ export default class GraphicsAssembler extends Assembler {
         this._vset(px + dlx * w, py + dly * w, 1);
         this._vset(px - dlx * w, py - dly * w, -1);
     }
-    
+
     _roundCapEnd (p, dx, dy, w, ncap) {
         let px = p.x;
         let py = p.y;
         let dlx = dy;
         let dly = -dx;
-    
+
         this._vset(px + dlx * w, py + dly * w, 1);
         this._vset(px - dlx * w, py - dly * w, -1);
         for (let i = 0; i < ncap; i++) {
@@ -573,30 +581,30 @@ export default class GraphicsAssembler extends Assembler {
             this._vset(px - dlx * ax + dx * ay, py - dly * ax + dy * ay, 1);
         }
     }
-    
+
     _roundJoin (p0, p1, lw, rw, ncap) {
         let dlx0 = p0.dy;
         let dly0 = -p0.dx;
         let dlx1 = p1.dy;
         let dly1 = -p1.dx;
-    
+
         let p1x = p1.x;
         let p1y = p1.y;
-    
+
         if ((p1.flags & PointFlags.PT_LEFT) !== 0) {
             let out = this._chooseBevel(p1.flags & PointFlags.PT_INNERBEVEL, p0, p1, lw);
             let lx0 = out[0];
             let ly0 = out[1];
             let lx1 = out[2];
             let ly1 = out[3];
-    
+
             let a0 = atan2(-dly0, -dlx0);
             let a1 = atan2(-dly1, -dlx1);
             if (a1 > a0) a1 -= PI * 2;
-    
+
             this._vset(lx0, ly0, 1);
             this._vset(p1x - dlx0 * rw, p1.y - dly0 * rw, -1);
-    
+
             let n = clamp(ceil((a0 - a1) / PI) * ncap, 2, ncap);
             for (let i = 0; i < n; i++) {
                 let u = i / (n - 1);
@@ -606,7 +614,7 @@ export default class GraphicsAssembler extends Assembler {
                 this._vset(p1x, p1y, 0);
                 this._vset(rx, ry, -1);
             }
-    
+
             this._vset(lx1, ly1, 1);
             this._vset(p1x - dlx1 * rw, p1y - dly1 * rw, -1);
         } else {
@@ -615,14 +623,14 @@ export default class GraphicsAssembler extends Assembler {
             let ry0 = out[1];
             let rx1 = out[2];
             let ry1 = out[3];
-    
+
             let a0 = atan2(dly0, dlx0);
             let a1 = atan2(dly1, dlx1);
             if (a1 < a0) a1 += PI * 2;
-    
+
             this._vset(p1x + dlx0 * rw, p1y + dly0 * rw, 1);
             this._vset(rx0, ry0, -1);
-    
+
             let n = clamp(ceil((a1 - a0) / PI) * ncap, 2, ncap);
             for (let i = 0; i < n; i++) {
                 let u = i / (n - 1);
@@ -632,12 +640,12 @@ export default class GraphicsAssembler extends Assembler {
                 this._vset(lx, ly, 1);
                 this._vset(p1x, p1y, 0);
             }
-    
+
             this._vset(p1x + dlx1 * rw, p1y + dly1 * rw, 1);
             this._vset(rx1, ry1, -1);
         }
     }
-    
+
     _bevelJoin (p0, p1, lw, rw) {
         let rx0, ry0, rx1, ry1;
         let lx0, ly0, lx1, ly1;
@@ -645,17 +653,17 @@ export default class GraphicsAssembler extends Assembler {
         let dly0 = -p0.dx;
         let dlx1 = p1.dy;
         let dly1 = -p1.dx;
-    
+
         if (p1.flags & PointFlags.PT_LEFT) {
             let out = this._chooseBevel(p1.flags & PointFlags.PT_INNERBEVEL, p0, p1, lw);
             lx0 = out[0];
             ly0 = out[1];
             lx1 = out[2];
             ly1 = out[3];
-    
+
             this._vset(lx0, ly0, 1);
             this._vset(p1.x - dlx0 * rw, p1.y - dly0 * rw, -1);
-    
+
             this._vset(lx1, ly1, 1);
             this._vset(p1.x - dlx1 * rw, p1.y - dly1 * rw, -1);
         } else {
@@ -664,15 +672,15 @@ export default class GraphicsAssembler extends Assembler {
             ry0 = out[1];
             rx1 = out[2];
             ry1 = out[3];
-    
+
             this._vset(p1.x + dlx0 * lw, p1.y + dly0 * lw, 1);
             this._vset(rx0, ry0, -1);
-    
+
             this._vset(p1.x + dlx1 * lw, p1.y + dly1 * lw, 1);
             this._vset(rx1, ry1, -1);
         }
     }
-    
+
     _vset (x, y, distance = 0) {
         let buffer = this._buffer;
         let meshbuffer = buffer.meshbuffer;
