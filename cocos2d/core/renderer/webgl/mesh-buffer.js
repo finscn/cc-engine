@@ -25,7 +25,7 @@
 
 import gfx from '../../../renderer/gfx';
 
-const isIOS14Device = cc.sys.os === cc.sys.OS_IOS && cc.sys.isBrowser && cc.sys.isMobile && /iPhone OS 14/.test(window.navigator.userAgent);
+const FIX_IOS14_BUFFER = cc.sys.os === cc.sys.OS_IOS && cc.sys.isBrowser && /(iPhone OS 1[4-9])|(Version\/1[4-9][\.\d]*)|(iOS 1[4-9])/.test(window.navigator.userAgent);
 
 let MeshBuffer = cc.Class({
     name: 'cc.MeshBuffer',
@@ -73,7 +73,7 @@ let MeshBuffer = cc.Class({
 
         this._initVDataCount = 256 * vertexFormat._bytes;// actually 256 * 4 * (vertexFormat._bytes / 4)
         this._initIDataCount = 256 * 6;
-        
+
         this._offsetInfo = {
             byteOffset : 0,
             vertexOffset : 0,
@@ -187,7 +187,7 @@ let MeshBuffer = cc.Class({
         this.requestStatic(vertexCount, indiceCount);
         return this._offsetInfo;
     },
-    
+
     _reallocBuffer () {
         this._reallocVData(true);
         this._reallocIData(true);
@@ -262,17 +262,17 @@ let MeshBuffer = cc.Class({
 
 // Should not share vb and id between multiple drawcalls on iOS14, it will cost a lot of time.
 // TODO: maybe remove it after iOS14 fix it?
-if (isIOS14Device) {
+if (FIX_IOS14_BUFFER) {
     MeshBuffer.prototype.checkAndSwitchBuffer = function (vertexCount) {
         if (this.vertexOffset + vertexCount > 65535) {
             this.uploadData();
             this._batcher._flush();
         }
-    };     
+    };
     MeshBuffer.prototype.forwardIndiceStartToOffset = function () {
         this.uploadData();
         this.switchBuffer();
-    }  
+    }
 }
 
 cc.MeshBuffer = module.exports = MeshBuffer;
