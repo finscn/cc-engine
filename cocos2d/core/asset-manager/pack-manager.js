@@ -43,10 +43,10 @@ function isLoading (val) {
 /**
  * !#en
  * Handle the packed asset, include unpacking, loading, cache and so on. It is a singleton. All member can be accessed with `cc.assetManager.packManager`
- * 
+ *
  * !#zh
  * 处理打包资源，包括拆包，加载，缓存等等，这是一个单例, 所有成员能通过 `cc.assetManager.packManager` 访问
- * 
+ *
  * @class PackManager
  */
 var packManager = {
@@ -54,10 +54,10 @@ var packManager = {
     /**
      * !#en
      * Unpack the json, revert to what it was before packing
-     * 
+     *
      * !#zh
      * 拆解 json 包，恢复为打包之前的内容
-     * 
+     *
      * @method unpackJson
      * @param {String[]} pack - The pack
      * @param {Object} json - The content of pack
@@ -65,22 +65,22 @@ var packManager = {
      * @param {Function} onComplete - Callback when finish unpacking
      * @param {Error} onComplete.err - The occurred error, null indicetes success
      * @param {Object} onComplete.content - The unpacked assets
-     * 
+     *
      * @example
      * downloader.downloadFile('pack.json', {responseType: 'json'}, null, (err, file) => {
      *      packManager.unpackJson(['a', 'b'], file, null, (err, data) => console.log(err));
      * });
-     * 
+     *
      * @typescript
      * unpackJson(pack: string[], json: any, options: Record<string, any>, onComplete?: (err: Error, content: any) => void): void
      */
     unpackJson (pack, json, options, onComplete) {
 
         var out = js.createMap(true), err = null;
-        
+
         if (Array.isArray(json)) {
 
-            json = unpackJSONs(json, cc._MissingScript.safeFindClass);
+            json = unpackJSONs(json);
 
             if (json.length !== pack.length) {
                 cc.errorID(4915);
@@ -118,10 +118,10 @@ var packManager = {
     /**
      * !#en
      * Register custom handler if you want to change default behavior or extend packManager to unpack other format pack
-     * 
+     *
      * !#zh
      * 当你想修改默认行为或者拓展 packManager 来拆分其他格式的包时可以注册自定义的 handler
-     * 
+     *
      * @method register
      * @param {string|Object} type - Extension likes '.bin' or map likes {'.bin': binHandler, '.ab': abHandler}
      * @param {Function} [handler] - handler
@@ -129,11 +129,11 @@ var packManager = {
      * @param {*} handler.data - The content of pack
      * @param {Object} handler.options - Some optional parameters
      * @param {Function} handler.onComplete - Callback when finishing unpacking
-     * 
+     *
      * @example
      * packManager.register('.bin', (packUuid, file, options, onComplete) => onComplete(null, null));
      * packManager.register({'.bin': (packUuid, file, options, onComplete) => onComplete(null, null), '.ab': (packUuid, file, options, onComplete) => onComplete(null, null)});
-     * 
+     *
      * @typescript
      * register(type: string, handler: (packUuid: string, data: any, options: Record<string, any>, onComplete: (err: Error, content: any) => void) => void): void
      * register(map: Record<string, (packUuid: string, data: any, options: Record<string, any>, onComplete: (err: Error, content: any) => void) => void>): void
@@ -146,28 +146,28 @@ var packManager = {
             unpackers[type] = handler;
         }
     },
-    
+
     /**
      * !#en
      * Use corresponding handler to unpack package
-     * 
+     *
      * !#zh
-     * 用对应的 handler 来进行解包 
-     * 
+     * 用对应的 handler 来进行解包
+     *
      * @method unpack
-     * @param {String[]} pack - The uuid of packed assets 
+     * @param {String[]} pack - The uuid of packed assets
      * @param {*} data - The packed data
      * @param {string} type - The type indicates that which handler should be used to download, such as '.jpg'
      * @param {Object} options - Some optional parameter
      * @param {Function} onComplete - callback when finishing unpacking
      * @param {Error} onComplete.err -  The occurred error, null indicetes success
      * @param {*} onComplete.data - Original assets
-     * 
+     *
      * @example
      * downloader.downloadFile('pack.json', {responseType: 'json'}, null, (err, file) => {
      *      packManager.unpack(['2fawq123d', '1zsweq23f'], file, '.json', null, (err, data) => console.log(err));
      * });
-     * 
+     *
      * @typescript
      * unpack(pack: string[], data: any, type: string, options: Record<string, any>, onComplete?: (err: Error, data: any) => void): void
      */
@@ -182,28 +182,28 @@ var packManager = {
 
     /**
      * !#en
-     * Download request item, If item is not in any package, download as usual. Otherwise, download the corresponding package and unpack it. 
+     * Download request item, If item is not in any package, download as usual. Otherwise, download the corresponding package and unpack it.
      * And then retrieve the corresponding content form it.
-     * 
+     *
      * !#zh
      * 下载请求对象，如果请求对象不在任何包内，则正常下载，否则下载对应的 package 并进行拆解，并取回包内对应的内容
-     * 
+     *
      * @method load
      * @param {RequestItem} item - Some item you want to download
      * @param {Object} options - Some optional parameters
      * @param {Function} onComplete - Callback when finished
      * @param {Err} onComplete.err - The occurred error, null indicetes success
      * @param {*} onComplete.data - The unpacked data retrieved from package
-     * 
+     *
      * @example
      * var requestItem = cc.AssetManager.RequestItem.create();
      * requestItem.uuid = 'fcmR3XADNLgJ1ByKhqcC5Z';
      * requestItem.info = config.getAssetInfo('fcmR3XADNLgJ1ByKhqcC5Z');
      * packManager.load(requestItem, null, (err, data) => console.log(err));
-     * 
+     *
      * @typescript
      * load(item: RequestItem, options: Record<string, any>, onComplete: (err: Error, data: any) => void): void
-     * 
+     *
      */
     load (item, options, onComplete) {
         // if not in any package, download as uausl
@@ -215,7 +215,7 @@ var packManager = {
 
         // find a loading package
         var pack = packs.find(isLoading);
-        
+
         if (pack) return _loading.get(pack.uuid).push({ onComplete, id: item.id });
 
         // download a new package
