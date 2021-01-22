@@ -546,12 +546,15 @@ function _commitVertexBuffers(device, gl, cur, next, isInstance) {
           el.offset + vbOffset * el.stride
         );
 
-        if (isInstance) {
-          device.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 1);
-          // maxLocation = Math.max(attr.location, maxLocation);
-        }
-        else {
-          device.ext('ANGLE_instanced_arrays').vertexAttribDivisorANGLE(attr.location, 0);
+        const angleExt = device.ext('ANGLE_instanced_arrays')
+        if (angleExt) {
+          if (isInstance) {
+            angleExt.vertexAttribDivisorANGLE(attr.location, 1);
+            // maxLocation = Math.max(attr.location, maxLocation);
+          }
+          else {
+            angleExt.vertexAttribDivisorANGLE(attr.location, 0);
+          }
         }
 
       }
@@ -1421,7 +1424,10 @@ export default class Device {
       // drawPrimitives
       if (isInstance) {
         bindInstance(gl, next.program)
-        this.ext('ANGLE_instanced_arrays').drawElementsInstancedANGLE(this._next.primitiveType, 6, next.indexBuffer._format, 0, count)
+        const angleExt = this.ext('ANGLE_instanced_arrays')
+        if (angleExt) {
+          angleExt.drawElementsInstancedANGLE(this._next.primitiveType, 6, next.indexBuffer._format, 0, count)
+        }
       }
       else if (next.indexBuffer) {
         gl.drawElements(
