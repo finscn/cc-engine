@@ -180,6 +180,28 @@ cc.macro = {
     // General configurations
 
     /**
+     * <p>
+     *   If enabled, the texture coordinates will be calculated by using this formula: <br/>
+     *      - texCoord.left = (rect.x*2+1) / (texture.wide*2);                  <br/>
+     *      - texCoord.right = texCoord.left + (rect.width*2-2)/(texture.wide*2); <br/>
+     *                                                                                 <br/>
+     *  The same for bottom and top.                                                   <br/>
+     *                                                                                 <br/>
+     *  This formula prevents artifacts by using 99% of the texture.                   <br/>
+     *  The "correct" way to prevent artifacts is by expand the texture's border with the same color by 1 pixel<br/>
+     *                                                                                  <br/>
+     *  Affected component:                                                                 <br/>
+     *      - cc.TMXLayer                                                       <br/>
+     *                                                                                  <br/>
+     *  Enabled by default. To disabled set it to 0. <br/>
+     *  To modify it, in Web engine please refer to CCMacro.js, in JSB please refer to CCConfig.h
+     * </p>
+     *
+     * @property {Number} FIX_ARTIFACTS_BY_STRECHING_TEXEL_TMX
+     */
+    FIX_ARTIFACTS_BY_STRECHING_TEXEL_TMX: true,
+
+    /**
      * Position of the FPS (Default: 0,0 (bottom-left corner))<br/>
      * To modify it, in Web engine please refer to CCMacro.js, in JSB please refer to CCConfig.h
      * @property {Vec2} DIRECTOR_STATS_POSITION
@@ -228,7 +250,7 @@ cc.macro = {
     BATCH_VERTEX_COUNT: 20000,
 
     /**
-     * !#en 
+     * !#en
      * Whether or not enabled tiled map auto culling. If you set the TiledMap skew or rotation, then need to manually disable this, otherwise, the rendering will be wrong.
      * !#zh
      * 是否开启瓦片地图的自动裁减功能。瓦片地图如果设置了 skew, rotation 或者采用了摄像机的话，需要手动关闭，否则渲染会出错。
@@ -238,7 +260,7 @@ cc.macro = {
     ENABLE_TILEDMAP_CULLING: true,
 
     /**
-     * !#en 
+     * !#en
      * Boolean that indicates if the canvas contains an alpha channel, default sets to false for better performance.
      * Though if you want to make your canvas background transparent and show other dom elements at the background,
      * you can set it to true before `cc.game.run`.

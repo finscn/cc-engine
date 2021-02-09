@@ -31,6 +31,9 @@ export default class EffectBase {
         if (prop.value instanceof Float32Array) {
             uniform.value = new Float32Array(prop.value);
         }
+        else if (prop.value instanceof Float64Array) {
+            uniform.value = new Float64Array(prop.value);
+        }
         else {
             uniform.value = prop.value;
         }

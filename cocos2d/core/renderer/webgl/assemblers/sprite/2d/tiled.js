@@ -113,7 +113,7 @@ export default class TiledAssembler extends Assembler2D {
         let offsetWidth = 0, offsetHeight = 0;
         if (centerWidth > 0) {
             /*
-             * Because the float numerical calculation in javascript is not accurate enough,
+             * Because the float numerical calculation in javascript is not accurate enough, 
              * there is an expected result of 1.0, but the actual result is 1.000001.
              */
             offsetWidth = Math.floor(this.sizableWidth * 1000) / 1000 % centerWidth === 0 ? centerWidth : this.sizableWidth % centerWidth;
@@ -183,7 +183,7 @@ export default class TiledAssembler extends Assembler2D {
 
         this.updateWorldVerts(sprite);
     }
-
+    
     updateWorldVerts (sprite) {
         let renderData = this._renderData;
         let local = this._local;
@@ -228,7 +228,7 @@ export default class TiledAssembler extends Assembler2D {
     updateUVs (sprite) {
         let verts = this._renderData.vDatas[0];
         if (!verts) return;
-
+        
         let frame = sprite._spriteFrame;
         let rect = frame._rect;
         let leftWidth = frame.insetLeft, rightWidth = frame.insetRight, centerWidth = rect.width - leftWidth - rightWidth,
@@ -346,3 +346,4 @@ export default class TiledAssembler extends Assembler2D {
         }
     }
 }
+

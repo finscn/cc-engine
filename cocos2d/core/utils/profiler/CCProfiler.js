@@ -37,7 +37,7 @@ let _label = null;
 
 function generateStats () {
     if (_stats) return;
-
+    
     _stats = {
         fps: { desc: 'Framerate (FPS)', below: 30, average: 500 },
         draws: { desc: 'Draw Call' },
@@ -126,7 +126,7 @@ function afterDraw () {
     _stats['draws']._counter.value = cc.renderer.drawCalls;
     _stats['frame']._counter.end(now);
     _stats['fps']._counter.frame(now);
-
+    
     let left = '';
     let right = '';
     for (let id in _stats) {
