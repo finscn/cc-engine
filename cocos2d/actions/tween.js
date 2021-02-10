@@ -699,16 +699,10 @@ for (let i = 0; i < keys.length; i++) {
  * @param {Object} [target] - the target to animate
  * @return {Tween}
  * @typescript
- * tween<T> (target?: T, global:boolean = true) : Tween<T>
+ * tween<T> (target?: T) : Tween<T>
  */
-cc.tween = function (target, global) {
-    let t = new Tween(target);
-    if (global === false) {
-        let scene = cc.director.getScene();
-        scene._allTweens = scene._allTweens || [];
-        scene._allTweens.push(t);
-    }
-    return t;
+cc.tween = function (target) {
+    return new Tween(target);
 };
 
 cc.Tween = Tween;
