@@ -20,5 +20,8 @@
     "CC_DEV": false,
     "CC_JSB": false,
     "_ccsg": false
+  },
+  "parserOptions": {
+    "sourceType": "module"
   }
 }
