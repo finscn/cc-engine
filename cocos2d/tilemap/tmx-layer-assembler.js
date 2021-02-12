@@ -261,14 +261,23 @@ function _flipDiamondTileTexture (inGrid, gid, shrink) {
 
 export default class TmxAssembler extends Assembler {
 
+    constructor() {
+        super();
+
+        this._renderDataList = new cc.TiledMapRenderDataList();
+        this._buffer = new cc.TiledMapBuffer(renderer._handle, vfmtPosUv);
+        this._bufferWithColor = new cc.TiledMapBuffer(renderer._handle, vfmtPosUvColor);
+
+    }
+
     updateRenderData (comp) {
-        if (!comp._renderDataList) {
-            if (comp._buffer) {
-                comp._buffer.destroy();
-            }
-            comp._buffer = new cc.TiledMapBuffer(renderer._handle, comp._withColor ? vfmtPosUvColor : vfmtPosUv);
-            comp._renderDataList = new cc.TiledMapRenderDataList();
-        }
+        // if (!comp._renderDataList) {
+        //     if (comp._buffer) {
+        //         comp._buffer.destroy();
+        //     }
+        //     comp._buffer = new cc.TiledMapBuffer(renderer._handle, comp._withColor ? vfmtPosUvColor : vfmtPosUv);
+        //     comp._renderDataList = new cc.TiledMapRenderDataList();
+        // }
     }
 
     fillBuffers (comp, renderer) {
@@ -283,8 +292,8 @@ export default class TmxAssembler extends Assembler {
         _layerMat = layerNode._worldMatrix;
         _renderer = renderer;
         _comp = comp;
-        _renderDataList = comp._renderDataList;
-        _buffer = comp._buffer;
+        _renderDataList = this._renderDataList;
+        _buffer = comp._withColor ? this._bufferWithColor : this._buffer;
 
         if (comp._tileChanged || comp._isCullingDirty() || comp._isUserNodeDirty() || comp._hasAnimation() || comp._hasTiledNode()) {
             comp._tileChanged = false;
@@ -313,19 +322,19 @@ export default class TmxAssembler extends Assembler {
             switch (comp.renderOrder) {
                 // left top to right down, col add, row sub,
                 case RenderOrder.RightDown:
-                    this.traverseGrids(leftDown, rightTop, -1, 1, comp);
+                    this.traverseGrids(leftDown, rightTop, -1, 1);
                     break;
                 // right top to left down, col sub, row sub
                 case RenderOrder.LeftDown:
-                    this.traverseGrids(leftDown, rightTop, -1, -1, comp);
+                    this.traverseGrids(leftDown, rightTop, -1, -1);
                     break;
                 // left down to right up, col add, row add
                 case RenderOrder.RightUp:
-                    this.traverseGrids(leftDown, rightTop, 1, 1, comp);
+                    this.traverseGrids(leftDown, rightTop, 1, 1);
                     break;
                 // right down to left up, col sub, row add
                 case RenderOrder.LeftUp:
-                    this.traverseGrids(leftDown, rightTop, 1, -1, comp);
+                    this.traverseGrids(leftDown, rightTop, 1, -1);
                     break;
             }
             comp._setCullingDirty(false);
@@ -378,7 +387,7 @@ export default class TmxAssembler extends Assembler {
 
     // rowMoveDir is -1 or 1, -1 means decrease, 1 means increase
     // colMoveDir is -1 or 1, -1 means decrease, 1 means increase
-    traverseGrids (leftDown, rightTop, rowMoveDir, colMoveDir, comp) {
+    traverseGrids(leftDown, rightTop, rowMoveDir, colMoveDir) {
         _renderDataList.reset();
 
         // show nothing
@@ -415,7 +424,7 @@ export default class TmxAssembler extends Assembler {
         let tiledNode = null, curTexIdx = -1, matIdx;
         let colNodesCount = 0, checkColRange = true;
 
-        let diamondTile = comp._diamondTile;
+        let diamondTile = _comp._diamondTile;
 
         this._flipTexture = diamondTile ? _flipDiamondTileTexture : _flipTexture;
 
@@ -530,7 +539,7 @@ export default class TmxAssembler extends Assembler {
                     }
                 }
 
-                this._flipTexture(grid, gid, comp.shrink || 0);
+                this._flipTexture(grid, gid, _comp.shrink || 0);
 
                 // lt/ct -> a
                 _vbuf[_vfOffset + 2] = _uva.x;

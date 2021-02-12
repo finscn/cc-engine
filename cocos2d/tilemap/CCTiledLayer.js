@@ -217,9 +217,6 @@ let TiledLayer = cc.Class({
                     this._withColor = value;
                     this._texIdToMatIndex = {};
                     this._materials = [];
-                    if (this._renderDataList) {
-                        this._renderDataList = null;
-                    }
                     this._activateMaterial();
                 }
             },
@@ -455,15 +452,6 @@ let TiledLayer = cc.Class({
         this._leftDownToCenterX = node.width * node.anchorX * node.scaleX;
         this._leftDownToCenterY = node.height * node.anchorY * node.scaleY;
         this._cullingDirty = true;
-    },
-
-    onDestroy () {
-        this._super();
-        if (this._buffer) {
-            this._buffer.destroy();
-            this._buffer = null;
-        }
-        this._renderDataList = null;
     },
 
     /**
