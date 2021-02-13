@@ -755,6 +755,480 @@ cc.TMXMapInfo.prototype = {
         return this.parseXMLString(tmxString);
     },
 
+    parseTmxJsonString (jsonStr, tilesetFirstGid) {
+        const map = JSON.parse(jsonStr);
+
+        let orientationStr = map.orientation;
+        let staggerAxisStr = map.staggeraxis;
+        let staggerIndexStr = map.staggerindex;
+        let hexSideLengthStr = map.hexsidelength;
+        let renderorderStr = map.renderorder;
+        let tiledversion = map.tiledversion || '1.0.0';
+
+        let versionArr = tiledversion.split('.');
+        let supportVersion = this._supportVersion;
+        for (let i = 0; i < supportVersion.length; i++) {
+            let v = parseInt(versionArr[i]) || 0;
+            let sv = supportVersion[i];
+            if (sv < v) {
+                cc.logID(7216, tiledversion);
+                break;
+            }
+        }
+
+        if (orientationStr === "orthogonal")
+            this.orientation = cc.TiledMap.Orientation.ORTHO;
+        else if (orientationStr === "isometric")
+            this.orientation = cc.TiledMap.Orientation.ISO;
+        else if (orientationStr === "hexagonal")
+            this.orientation = cc.TiledMap.Orientation.HEX;
+        else if (orientationStr !== null)
+            cc.logID(7217, orientationStr);
+
+        if (renderorderStr === 'right-up') {
+            this.renderOrder = cc.TiledMap.RenderOrder.RightUp;
+        } else if (renderorderStr === 'left-up') {
+            this.renderOrder = cc.TiledMap.RenderOrder.LeftUp;
+        } else if (renderorderStr === 'left-down') {
+            this.renderOrder = cc.TiledMap.RenderOrder.LeftDown;
+        } else {
+            this.renderOrder = cc.TiledMap.RenderOrder.RightDown;
+        }
+
+        if (staggerAxisStr === 'x') {
+            this.setStaggerAxis(cc.TiledMap.StaggerAxis.STAGGERAXIS_X);
+        }
+        else if (staggerAxisStr === 'y') {
+            this.setStaggerAxis(cc.TiledMap.StaggerAxis.STAGGERAXIS_Y);
+        }
+
+        if (staggerIndexStr === 'odd') {
+            this.setStaggerIndex(cc.TiledMap.StaggerIndex.STAGGERINDEX_ODD);
+        }
+        else if (staggerIndexStr === 'even') {
+            this.setStaggerIndex(cc.TiledMap.StaggerIndex.STAGGERINDEX_EVEN);
+        }
+
+        if (hexSideLengthStr) {
+            this.setHexSideLength(parseFloat(hexSideLengthStr));
+        }
+
+        let mapSize = cc.size(0, 0);
+        mapSize.width = parseFloat(map.width);
+        mapSize.height = parseFloat(map.height);
+        this.setMapSize(mapSize);
+
+        mapSize = cc.size(0, 0);
+        mapSize.width = parseFloat(map.tilewidth);
+        mapSize.height = parseFloat(map.tileheight);
+        this.setTileSize(mapSize);
+
+        // The parent element is the map
+        // this.properties = getPropertyList(map);
+        this.properties = {};
+        if (map.properties) {
+            const ps = this.properties;
+            map.properties.forEach(function(p){
+                ps[p.name] = p.value;
+            })
+        }
+
+        // TODO:
+        // this.type = map.type;
+        // this.version = map.version;
+        // this.compressionlevel = map.compressionlevel;
+        // this.infinite = map.infinite;
+        // this.nextlayerid = map.nextlayerid;
+
+        this.parseTilesetsJson(map.tilesets);
+
+        for (let i = 0; i < map.layers.length; i++) {
+            let layer = map.layers[i];
+
+            if (layer.type === 'tilelayer') {
+                let tilelayer = this._parseTileLayerJson(layer);
+                if (tilelayer) {
+                    this.setLayers(tilelayer);
+                }
+            }
+
+            if (layer.type === 'objectgroup') {
+                let objectGroup = this._parseObjectGroupJson(layer);
+                if (objectGroup) {
+                    this.setObjectGroups(objectGroup);
+                }
+            }
+
+            if (layer.nodeName === 'imagelayer') {
+                let imageLayer = this._parseImageLayerJson(layer);
+                if (imageLayer) {
+                    this.setImageLayers(imageLayer);
+                }
+            }
+        }
+    },
+
+    parseTilesetsJson (tilesets) {
+        if (!tilesets) {
+            return;
+        }
+
+        for (let i = 0; i < tilesets.length; i++) {
+            let selTileset = tilesets[i];
+            // If this is an external tileset then start parsing that
+            let tsxName = selTileset.source;
+            if (tsxName) {
+                let currentFirstGID = parseInt(selTileset.firstgid);
+                let tsxXmlString = this._tsxMap[tsxName];
+                if (tsxXmlString) {
+                    this.parseXMLString(tsxXmlString, currentFirstGID);
+                }
+            } else {
+                let tilesetName = selTileset.name || '';
+                let tilesetSpacing = selTileset.spacing|| 0;
+                let tilesetMargin = selTileset.margin || 0;
+                let firstGid = selTileset.firstgid || 0;
+
+                let tilesetSize = cc.size(0, 0);
+                tilesetSize.width = selTileset.tilewidth;
+                tilesetSize.height  = selTileset.tileheight;
+
+                // parse tile offset
+                let tileOffset = selTileset.tileoffset;
+                let tileOffsetX = 0;
+                let tileOffsetY = 0;
+                if (tileOffset) {
+                    tileOffsetX = tileOffset.x;
+                    tileOffsetY = tileOffset.y;
+                }
+
+                const tiles = selTileset.tiles;
+                const tileCount = tiles && tiles.length || 1;
+                let imageCount = 0;
+                let firstImage = null;
+                let firstImageName = null;
+                let collection = false;
+
+                for (let tileIdx = 0; tileIdx < tileCount; tileIdx++) {
+                    const tile = tiles[tileIdx];
+                    if (tile.image) {
+                        imageCount++;
+                        if (imageCount === 1) {
+                            firstImage = tile.image;
+                            firstImageName = firstImage.source;
+                            firstImageName = firstImageName.replace(/\\/g, '/');
+                        } else if (imageCount > 1 ) {
+                            collection = true;
+                            break;
+                        }
+                    }
+                }
+
+                let tileset = null;
+                for (let tileIdx = 0; tileIdx < tileCount; tileIdx++) {
+                    if (!tileset || collection) {
+                        tileset = new cc.TMXTilesetInfo();
+                        tileset.name = tilesetName;
+                        tileset.firstGid = firstGid;
+                        tileset.tileOffset.x = tileOffsetX;
+                        tileset.tileOffset.y = tileOffsetY;
+
+                        tileset.collection = collection;
+                        if (!collection) {
+
+                            tileset.imageName = firstImageName;
+                            tileset.imageSize.width = firstImage.width || 0;
+                            tileset.imageSize.height = firstImage.height || 0;
+                            tileset.sourceImage = this._textures[firstImageName];
+                            if (!tileset.sourceImage) {
+                                let shortName = cc.TiledMap.getShortName(firstImageName);
+                                tileset.imageName = shortName;
+                                tileset.sourceImage = this._textures[shortName];
+                                if (!tileset.sourceImage && !this._hasAtlases) {
+                                    cc.errorID(7221, firstImageName);
+                                }
+                            }
+                        }
+
+                        tileset.spacing = tilesetSpacing;
+                        tileset.margin = tilesetMargin;
+                        tileset._tileSize.width = tilesetSize.width;
+                        tileset._tileSize.height = tilesetSize.height;
+
+                        this.setTilesets(tileset);
+                    }
+
+                    const tile = tiles[tileIdx];
+                    if (!tile) {
+                        continue;
+                    }
+
+                    this.parentGID = firstGid + (tile.id || 0);
+                    let image = tile.image;
+                    let imageName = image.source;
+                    imageName = imageName.replace(/\\/g, '/');
+
+                    tileset.imageName = imageName;
+                    tileset.imageSize.width = image.width || 0;
+                    tileset.imageSize.height = image.height || 0;
+
+                    tileset._tileSize.width = tileset.imageSize.width;
+                    tileset._tileSize.height = tileset.imageSize.height;
+
+                    tileset.sourceImage = this._textures[imageName];
+                    if (!tileset.sourceImage) {
+                        let shortName = cc.TiledMap.getShortName(imageName);
+                        tileset.imageName = shortName;
+                        tileset.sourceImage = this._textures[shortName];
+                        if (!tileset.sourceImage && !this._hasAtlases) {
+                            cc.errorID(7221, imageName);
+                        }
+                    }
+
+                    tileset.firstGid = this.parentGID;
+
+                    const ps = this._tileProperties[this.parentGID] = {};
+                    if (tile.properties) {
+                        tile.properties.forEach(function (p) {
+                            ps[p.name] = p.value;
+                        });
+                    }
+
+                    let animations = tile.animation;
+                    if (animations && animations.length > 0) {
+                        let animationProp = { frames: [], dt: 0, frameIdx: 0 };
+                        this._tileAnimations[this.parentGID] = animationProp;
+                        const frameCount = animations.length;
+                        let frames = animationProp.frames;
+                        for (let frameIdx = 0; frameIdx < frameCount; frameIdx++) {
+                            let frame = animations[frameIdx];
+                            let tileid = firstGid + (frame.tileid || 0);
+                            let duration = frame.duration || 0;
+                            frames.push({ tileid: tileid, duration: duration / 1000, grid: null });
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    _parseTileLayerJson(selLayer) {
+        let layer = new cc.TMXLayerInfo();
+
+        layer.name = selLayer.name;
+        let layerSize = cc.size(0, 0);
+        layerSize.width = selLayer.width;
+        layerSize.height = selLayer.height;
+        layer._layerSize = layerSize;
+        layer.visible = selLayer.visible;
+        layer.offset = cc.v2(selLayer.offsetx || 0, selLayer.offsety || 0);
+        layer.tintColor = selLayer.tintcolor || null;
+        let opacity = selLayer.opacity;
+        opacity = (opacity || opacity === 0) ? opacity : 1;
+        layer._opacity = Math.floor(255 * opacity);
+
+        let data = selLayer.data;
+        let compression = selLayer.compression;
+        let encoding = selLayer.encoding;
+
+        let nodeValue = data;
+
+        // Unpack the tilemap data
+        if (compression && compression !== "gzip" && compression !== "zlib") {
+            cc.logID(7218);
+            return null;
+        }
+        let tiles;
+        let inflator;
+        switch (compression) {
+            case 'gzip':
+                tiles = codec.unzipBase64AsArray(nodeValue, 4);
+                break;
+            case 'zlib':
+                inflator = new zlib.Inflate(codec.Base64.decodeAsArray(nodeValue, 1));
+                tiles = uint8ArrayToUint32Array(inflator.decompress());
+                break;
+            case null:
+            case '':
+                // Uncompressed
+                if (encoding === "base64")
+                    tiles = codec.Base64.decodeAsArray(nodeValue, 4);
+                else if (encoding === "csv") {
+                    tiles = [];
+                    let csvTiles = nodeValue.split(',');
+                    for (let csvIdx = 0; csvIdx < csvTiles.length; csvIdx++)
+                        tiles.push(Number(csvTiles[csvIdx]));
+                } else {
+                    //XML format
+                    tiles = nodeValue;
+                }
+                break;
+            default:
+                if (this.layerAttrs === cc.TMXLayerInfo.ATTRIB_NONE)
+                    cc.logID(7219);
+                break;
+        }
+        if (tiles) {
+            layer._tiles = new Uint32Array(tiles);
+        }
+
+        // The parent element is the last layer
+        layer.properties = {}
+        if (selLayer.properties) {
+            const ps = layer.properties;
+            selLayer.properties.forEach(function (p) {
+                ps[p.name] = p.value;
+            })
+        }
+
+        return layer;
+    },
+
+    _parseObjectGroupJson(selLayer) {
+        let objectGroup = new cc.TMXObjectGroupInfo();
+
+        objectGroup.name = selLayer.name;
+        objectGroup.offset = cc.v2(selLayer.offsetx || 0, selLayer.offsety || 0);
+        let opacity = selLayer.opacity;
+        opacity = (opacity || opacity === 0) ? opacity : 1;
+        objectGroup._opacity = Math.floor(255 * opacity);
+        objectGroup.visible = selLayer.visible;
+        objectGroup.tintColor = selLayer.tintcolor || null;
+        if (selLayer.color) {
+            objectGroup._color.fromHEX(selLayer.color);
+        }
+        if (selLayer.draworder) {
+            objectGroup._draworder = selLayer.draworder;
+        }
+
+        // set the properties to the group
+        objectGroup.properties = {};
+        if (selLayer.properties) {
+            const ps = objectGroup.properties;
+            selLayer.properties.forEach(function (p) {
+                ps[p.name] = p.value;
+            })
+        }
+
+
+        let objects = selLayer.objects;
+        if (objects) {
+            for (let j = 0; j < objects.length; j++) {
+                let selObj = objects[j];
+                // The value for "type" was blank or not a valid class name
+                // Create an instance of TMXObjectInfo to store the object and its properties
+                let objectProp = {
+                    id: selObj.id,
+                    name: selObj.name,
+                    width: selObj.width,
+                    height: selObj.height,
+                    x: selObj.x,
+                    y: selObj.y,
+                    rotation: selObj.rotation,
+                    visible: selObj.visible,
+                };
+
+                objectProp.properties = {};
+                if (selObj.properties) {
+                    const ps = objectProp.properties;
+                    selObj.properties.forEach(function (p) {
+                        ps[p.name] = p.value;
+                    })
+                }
+
+                // text
+                let text = selObj.text;
+                if (text) {
+                    objectProp['text'] = text.text || '';
+                    objectProp['type'] = cc.TiledMap.TMXObjectType.TEXT;
+                    objectProp['wrap'] = text.wrap;
+                    objectProp['color'] = strToColor(text.color);
+                    objectProp['halign'] = strToHAlign(text.halign);
+                    objectProp['valign'] = strToVAlign(text.valign);
+                    objectProp['pixelsize'] = text.pixelsize || 16;
+                    if (text.fontfamily) {
+                        objectProp['fontfamily'] = text.fontfamily;
+                    }
+                }
+
+                // image
+                let gid = selObj.getAttribute('gid');
+                if (gid) {
+                    objectProp['gid'] = parseInt(gid);
+                    objectProp['type'] = cc.TiledMap.TMXObjectType.IMAGE;
+                }
+
+                // ellipse
+                let ellipse = selObj.getElementsByTagName('ellipse');
+                if (ellipse && ellipse.length > 0) {
+                    objectProp['type'] = cc.TiledMap.TMXObjectType.ELLIPSE;
+                }
+
+                //polygon
+                let polygonProps = selObj.getElementsByTagName("polygon");
+                if (polygonProps && polygonProps.length > 0) {
+                    objectProp['type'] = cc.TiledMap.TMXObjectType.POLYGON;
+                    let selPgPointStr = polygonProps[0].getAttribute('points');
+                    if (selPgPointStr)
+                        objectProp["points"] = this._parsePointsString(selPgPointStr);
+                }
+
+                //polyline
+                let polylineProps = selObj.getElementsByTagName("polyline");
+                if (polylineProps && polylineProps.length > 0) {
+                    objectProp['type'] = cc.TiledMap.TMXObjectType.POLYLINE;
+                    let selPlPointStr = polylineProps[0].getAttribute('points');
+                    if (selPlPointStr)
+                        objectProp["polylinePoints"] = this._parsePointsString(selPlPointStr);
+                }
+
+                if (!objectProp['type']) {
+                    objectProp['type'] = cc.TiledMap.TMXObjectType.RECT;
+                }
+
+                // Add the object to the objectGroup
+                objectGroup._objects.push(objectProp);
+            }
+
+            if (draworder !== 'index') {
+                objectGroup._objects.sort(function (a, b) {
+                    return a.y - b.y;
+                });
+            }
+        }
+        return objectGroup;
+    },
+
+    _parseImageLayerJson (layer) {
+        let datas = selLayer.getElementsByTagName('image');
+        if (!datas || datas.length === 0) return null;
+
+        let imageLayer = new cc.TMXImageLayerInfo();
+        imageLayer.name = selLayer.getAttribute('name');
+        imageLayer.offset.x = parseFloat(selLayer.getAttribute('offsetx')) || 0;
+        imageLayer.offset.y = parseFloat(selLayer.getAttribute('offsety')) || 0;
+        let visible = selLayer.getAttribute('visible');
+        imageLayer.visible = !(visible === "0");
+
+        let opacity = selLayer.getAttribute('opacity') || 1;
+        imageLayer.opacity = parseInt(255 * parseFloat(opacity)) || 255;
+
+        imageLayer.tintColor = selLayer.getAttribute('tintcolor') || null;
+
+        let data = datas[0];
+        let source = data.getAttribute('source');
+        imageLayer.sourceImage = this._imageLayerTextures[source];
+        imageLayer.width = parseInt(data.getAttribute('width')) || 0;
+        imageLayer.height = parseInt(data.getAttribute('height')) || 0;
+        imageLayer.trans = strToColor(data.getAttribute('trans'));
+
+        if (!imageLayer.sourceImage) {
+            cc.errorID(7221, source);
+            return null;
+        }
+        return imageLayer;
+    },
+
     /**
      * Initializes parsing of an XML string, either a tmx (Map) string or tsx (Tileset) string
      * @param {String} xmlString
