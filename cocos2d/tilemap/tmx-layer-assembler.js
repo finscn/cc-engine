@@ -90,6 +90,22 @@ function _flush () {
     _renderData.material = _curMaterial;
 }
 
+function _renderNodesList (nodesRenderList) {
+    let nodesList;
+    _renderer.worldMatDirty++;
+    for (let j = 0; j < nodesRenderList.length; j++) {
+        nodesList = nodesRenderList[j];
+        if (!nodesList) continue;
+        for (let idx = 0; idx < nodesList.length; idx++) {
+            let dataComp = nodesList[idx];
+            if (!dataComp) continue;
+            _visitUserNode(dataComp.node);
+        }
+    }
+    _renderer.worldMatDirty--;
+    _renderer._flush();
+}
+
 function _renderNodes (nodeRow, nodeCol) {
     let nodesInfo = _comp._getNodesByRowCol(nodeRow, nodeCol);
     if (!nodesInfo || nodesInfo.count === 0) return;
@@ -343,24 +359,12 @@ export default class TmxAssembler extends Assembler {
         } else if (!CC_NATIVERENDERER) {
             let renderData = null;
             let nodesRenderList = null;
-            let nodesList = null;
 
             for (let i = 0; i < _renderDataList._offset; i++) {
                 renderData = _renderDataList._dataList[i];
                 nodesRenderList = renderData.nodesRenderList;
                 if (nodesRenderList.length > 0) {
-                    renderer.worldMatDirty++;
-                    for (let j = 0; j < nodesRenderList.length; j++) {
-                        nodesList = nodesRenderList[j];
-                        if (!nodesList) continue;
-                        for (let idx = 0; idx < nodesList.length; idx++) {
-                            let dataComp = nodesList[idx];
-                            if (!dataComp) continue;
-                            _visitUserNode(dataComp.node);
-                        }
-                    }
-                    renderer.worldMatDirty--;
-                    renderer._flush();
+                    _renderNodesList(nodesRenderList);
                 }
                 if (renderData.ia._count > 0) {
                     renderer.material = renderData.material;
