@@ -35,7 +35,7 @@ const vfmtPosUvColor = require('../core/renderer/webgl/vertex-format').vfmtPosUv
 const vfmtPosUv = require('../core/renderer/webgl/vertex-format').vfmtPosUv;
 
 
-const MaxGridsLimit = parseInt(65535 / 6);
+const MaxGridsLimit = Math.floor(65535 / 6);
 const RenderOrder = TiledMap.RenderOrder;
 
 import { Mat4, Vec3 } from '../core/value-types';
@@ -353,6 +353,7 @@ export default class TmxAssembler extends Assembler {
                     this.traverseGrids(leftDown, rightTop, 1, -1);
                     break;
             }
+
             comp._setCullingDirty(false);
             comp._setUserNodeDirty(false);
 
@@ -392,6 +393,7 @@ export default class TmxAssembler extends Assembler {
     // rowMoveDir is -1 or 1, -1 means decrease, 1 means increase
     // colMoveDir is -1 or 1, -1 means decrease, 1 means increase
     traverseGrids(leftDown, rightTop, rowMoveDir, colMoveDir) {
+
         _renderDataList.reset();
 
         // show nothing
