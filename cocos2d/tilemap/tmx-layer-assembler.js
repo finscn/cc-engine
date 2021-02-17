@@ -280,20 +280,20 @@ export default class TmxAssembler extends Assembler {
     constructor() {
         super();
 
-        this._renderDataList = new cc.TiledMapRenderDataList();
-        this._buffer = new cc.TiledMapBuffer(renderer._handle, vfmtPosUv);
-        this._bufferWithColor = new cc.TiledMapBuffer(renderer._handle, vfmtPosUvColor);
+        // this._renderDataList = new cc.TiledMapRenderDataList();
+        // this._buffer = new cc.TiledMapBuffer(renderer._handle, vfmtPosUv);
+        // this._bufferWithColor = new cc.TiledMapBuffer(renderer._handle, vfmtPosUvColor);
 
     }
 
     updateRenderData (comp) {
-        // if (!comp._renderDataList) {
-        //     if (comp._buffer) {
-        //         comp._buffer.destroy();
-        //     }
-        //     comp._buffer = new cc.TiledMapBuffer(renderer._handle, comp._withColor ? vfmtPosUvColor : vfmtPosUv);
-        //     comp._renderDataList = new cc.TiledMapRenderDataList();
-        // }
+        if (!comp._renderDataList) {
+            comp._renderDataList = new cc.TiledMapRenderDataList();
+            if (comp._buffer) {
+                comp._buffer.destroy();
+            }
+            comp._buffer = new cc.TiledMapBuffer(renderer._handle, comp._withColor ? vfmtPosUvColor : vfmtPosUv);
+        }
     }
 
     fillBuffers (comp, renderer) {
@@ -308,8 +308,8 @@ export default class TmxAssembler extends Assembler {
         _layerMat = layerNode._worldMatrix;
         _renderer = renderer;
         _comp = comp;
-        _renderDataList = this._renderDataList;
-        _buffer = comp._withColor ? this._bufferWithColor : this._buffer;
+        _renderDataList = comp._renderDataList;
+        _buffer = comp._buffer;
 
         if (comp._tileChanged || comp._isCullingDirty() || comp._isUserNodeDirty() || comp._hasAnimation() || comp._hasTiledNode()) {
             comp._tileChanged = false;
