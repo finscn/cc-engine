@@ -35,7 +35,7 @@ const vfmtPosUvColor = require('../core/renderer/webgl/vertex-format').vfmtPosUv
 const vfmtPosUv = require('../core/renderer/webgl/vertex-format').vfmtPosUv;
 
 
-const MaxGridsLimit = parseInt(65535 / 6);
+const MaxGridsLimit = Math.floor(65535 / 6);
 const RenderOrder = TiledMap.RenderOrder;
 
 import { Mat4, Vec3 } from '../core/value-types';
@@ -280,20 +280,20 @@ export default class TmxAssembler extends Assembler {
     constructor() {
         super();
 
-        this._renderDataList = new cc.TiledMapRenderDataList();
-        this._buffer = new cc.TiledMapBuffer(renderer._handle, vfmtPosUv);
-        this._bufferWithColor = new cc.TiledMapBuffer(renderer._handle, vfmtPosUvColor);
+        // this._renderDataList = new cc.TiledMapRenderDataList();
+        // this._buffer = new cc.TiledMapBuffer(renderer._handle, vfmtPosUv);
+        // this._bufferWithColor = new cc.TiledMapBuffer(renderer._handle, vfmtPosUvColor);
 
     }
 
     updateRenderData (comp) {
-        // if (!comp._renderDataList) {
-        //     if (comp._buffer) {
-        //         comp._buffer.destroy();
-        //     }
-        //     comp._buffer = new cc.TiledMapBuffer(renderer._handle, comp._withColor ? vfmtPosUvColor : vfmtPosUv);
-        //     comp._renderDataList = new cc.TiledMapRenderDataList();
-        // }
+        if (!comp._renderDataList) {
+            comp._renderDataList = new cc.TiledMapRenderDataList();
+            if (comp._buffer) {
+                comp._buffer.destroy();
+            }
+            comp._buffer = new cc.TiledMapBuffer(renderer._handle, comp._withColor ? vfmtPosUvColor : vfmtPosUv);
+        }
     }
 
     fillBuffers (comp, renderer) {
@@ -308,8 +308,8 @@ export default class TmxAssembler extends Assembler {
         _layerMat = layerNode._worldMatrix;
         _renderer = renderer;
         _comp = comp;
-        _renderDataList = this._renderDataList;
-        _buffer = comp._withColor ? this._bufferWithColor : this._buffer;
+        _renderDataList = comp._renderDataList;
+        _buffer = comp._buffer;
 
         if (comp._tileChanged || comp._isCullingDirty() || comp._isUserNodeDirty() || comp._hasAnimation() || comp._hasTiledNode()) {
             comp._tileChanged = false;
@@ -353,6 +353,7 @@ export default class TmxAssembler extends Assembler {
                     this.traverseGrids(leftDown, rightTop, 1, -1);
                     break;
             }
+
             comp._setCullingDirty(false);
             comp._setUserNodeDirty(false);
 
@@ -392,6 +393,7 @@ export default class TmxAssembler extends Assembler {
     // rowMoveDir is -1 or 1, -1 means decrease, 1 means increase
     // colMoveDir is -1 or 1, -1 means decrease, 1 means increase
     traverseGrids(leftDown, rightTop, rowMoveDir, colMoveDir) {
+
         _renderDataList.reset();
 
         // show nothing

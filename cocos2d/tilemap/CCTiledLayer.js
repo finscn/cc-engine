@@ -215,6 +215,10 @@ let TiledLayer = cc.Class({
                 if (this._withColor !== value) {
                     this._tileChanged = true;
                     this._withColor = value;
+                    if (this._renderDataList) {
+                        this._renderDataList.destroy();
+                        this._renderDataList = null;
+                    }
                     this._texIdToMatIndex = {};
                     this._materials = [];
                     this._activateMaterial();

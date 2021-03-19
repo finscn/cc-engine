@@ -1,6 +1,6 @@
 {
   "__type__": "cc.Material",
-  "_name": "New Material",
+  "_name": "sprite-instance-map",
   "_objFlags": 0,
   "_native": "",
   "_effectAsset": {
@@ -12,11 +12,7 @@
       "defines": {
         "TEXTURE_LEVEL": 1
       },
-      "props": {
-        "texture1": {
-          "__uuid__": "26505642-8426-4c58-bc33-ddc8d824ade4"
-        }
-      }
+      "props": {}
     }
   }
 }
