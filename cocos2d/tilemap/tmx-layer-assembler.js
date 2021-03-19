@@ -280,6 +280,8 @@ export default class TmxAssembler extends Assembler {
     constructor() {
         super();
 
+        this._flipTexture = null;
+
         // this._renderDataList = new cc.TiledMapRenderDataList();
         // this._buffer = new cc.TiledMapBuffer(renderer._handle, vfmtPosUv);
         // this._bufferWithColor = new cc.TiledMapBuffer(renderer._handle, vfmtPosUvColor);
@@ -387,8 +389,6 @@ export default class TmxAssembler extends Assembler {
         _vbuf = null;
         _uintbuf = null;
     }
-
-    _flipTexture = null
 
     // rowMoveDir is -1 or 1, -1 means decrease, 1 means increase
     // colMoveDir is -1 or 1, -1 means decrease, 1 means increase
