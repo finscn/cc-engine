@@ -237,7 +237,7 @@ var packManager = {
                     }
                 }
                 else {
-                    err.message += ": "+ url
+                    err.message += ": " + url
                 }
 
                 var callbacks = _loading.remove(pack.uuid);
