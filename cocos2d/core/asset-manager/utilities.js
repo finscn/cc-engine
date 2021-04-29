@@ -141,7 +141,14 @@ var utils = {
             var includeNative = true;
             if (data instanceof cc.Asset && (!data.__nativeDepend__ || data._nativeAsset)) includeNative = false; 
             if (!preload) {
-                asyncLoadAssets = !CC_EDITOR && (!!data.asyncLoadAssets || (asyncLoadAssets && !info.preventDeferredLoadDependents));
+                // asyncLoadAssets = !CC_EDITOR && (!!data.asyncLoadAssets || (asyncLoadAssets && !info.preventDeferredLoadDependents));
+                if (CC_EDITOR) {
+                    asyncLoadAssets = false
+                } else if (asyncLoadAssets === true || asyncLoadAssets === false) {
+                    asyncLoadAssets = asyncLoadAssets && !info.preventDeferredLoadDependents
+                } else {
+                    asyncLoadAssets = !!data.asyncLoadAssets
+                }
                 for (let i = 0, l = info.deps.length; i < l; i++) {
                     let dep = info.deps[i];
                     if (!(dep in exclude)) {
