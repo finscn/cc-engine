@@ -522,7 +522,7 @@ cc.Director.prototype = {
      * @param {Function} [onLaunched] - callback, will be called after scene launched.
      * @return {Boolean} if error, return false
      */
-    loadScene: function (sceneName, onLaunched, _onUnloaded, onProgress) {
+    loadScene: function (sceneName, onLaunched, _onUnloaded) {
         if (this._loadingScene) {
             cc.warnID(1208, sceneName, this._loadingScene);
             return false;
@@ -535,7 +535,7 @@ cc.Director.prototype = {
             this._loadingScene = sceneName;
             var self = this;
             console.time('LoadScene ' + sceneName);
-            bundle.loadScene(sceneName, onProgress, function (err, scene) {
+            bundle.loadScene(sceneName, function (err, scene) {
                 console.timeEnd('LoadScene ' + sceneName);
                 self._loadingScene = '';
                 if (err) {

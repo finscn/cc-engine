@@ -181,6 +181,8 @@ let Label = cc.Class({
         this._ttfTexture = null;
         this._letterTexture = null;
 
+        this.texturePackable = true
+
         if (cc.game.renderType === cc.game.RENDER_TYPE_CANVAS) {
             this._updateMaterial = this._updateMaterialCanvas;
         }
@@ -752,7 +754,7 @@ let Label = cc.Class({
                     this._ttfTexture = new cc.Texture2D();
                     this._assemblerData = this._assembler._getAssemblerData();
                     this._ttfTexture.initWithElement(this._assemblerData.canvas);
-                    this._ttfTexture.packable = true;
+                    this._ttfTexture.packable = this.texturePackable;
                 }
 
                 if (this.cacheMode !== CacheMode.CHAR) {
