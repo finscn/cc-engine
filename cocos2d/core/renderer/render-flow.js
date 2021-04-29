@@ -14,17 +14,17 @@ const CHILDREN = 1 << FlagOfset++;
 const POST_RENDER = 1 << FlagOfset++;
 const FINAL = 1 << FlagOfset++;
 
-
 let _batcher, _forward;
 let _cullingMask = 0;
 
-function RenderFlow() {
+function RenderFlow () {
     this._func = init;
     this._next = null;
 }
 
 let _proto = RenderFlow.prototype;
-_proto._doNothing = function() {};
+_proto._doNothing = function () {
+};
 
 _proto._localTransform = function(node) {
     node._updateLocalMatrix();
@@ -32,7 +32,7 @@ _proto._localTransform = function(node) {
     // this._next._func(node);
 };
 
-_proto._worldTransform = function(node) {
+_proto._worldTransform = function (node) {
     _batcher.worldMatDirty++;
 
     let t = node._matrix;
@@ -54,7 +54,7 @@ function _worldTransformPost(node) {
     _batcher.worldMatDirty--;
 };
 
-_proto._opacity = function(node) {
+_proto._opacity = function (node) {
     _batcher.parentOpacityDirty++;
 
     postFlow.push(_opacityPost);
@@ -68,7 +68,7 @@ function _opacityPost(node) {
     _batcher.parentOpacityDirty--;
 };
 
-_proto._color = function(node) {
+_proto._color = function (node) {
     let comp = node._renderComponent;
     if (comp) {
         comp._updateColor();
@@ -92,17 +92,18 @@ _proto._render = function(node) {
     // this._next._func(node);
 };
 
-_proto._children = function(node) {
+
+_proto._children = function (node) {
     let cullingMask = _cullingMask;
     let batcher = _batcher;
 
     let parentOpacity = batcher.parentOpacity;
+    let opacity = (batcher.parentOpacity *= (node._opacity / 255));
 
     let worldTransformFlag = batcher.worldMatDirty ? WORLD_TRANSFORM : 0;
     let worldOpacityFlag = batcher.parentOpacityDirty ? OPACITY_COLOR : 0;
     let worldDirtyFlag = worldTransformFlag | worldOpacityFlag;
 
-    let opacity = (batcher.parentOpacity *= (node._opacity / 255));
     let children = node._children;
     for (let i = 0, l = children.length; i < l; i++) {
         let c = children[i];
@@ -136,7 +137,7 @@ _proto._children = function(node) {
     // this._next._func(node);
 };
 
-_proto._postRender = function(node) {
+_proto._postRender = function (node) {
     let comp = node._renderComponent;
     comp._checkBacth(_batcher, node._cullingMask);
     comp._assembler.postFillBuffers(comp, _batcher);
@@ -149,7 +150,7 @@ EMPTY_FLOW._next = EMPTY_FLOW;
 
 let flows = {};
 
-function createFlow(flag, next) {
+function createFlow (flag, next) {
     let flow = new RenderFlow();
     flow._next = next || EMPTY_FLOW;
 
@@ -223,18 +224,19 @@ RenderFlow.postFlow = postFlow;
 
 // validate whether render component is ready to be rendered.
 let _validateList = [];
-RenderFlow.registerValidate = function(renderComp) {
+RenderFlow.registerValidate = function (renderComp) {
     if (renderComp._inValidateList) return;
     _validateList.push(renderComp);
     renderComp._inValidateList = true;
 };
-RenderFlow.validateRenderers = function() {
+RenderFlow.validateRenderers = function () {
     for (let i = 0, l = _validateList.length; i < l; i++) {
         let renderComp = _validateList[i];
         if (!renderComp.isValid) continue;
         if (!renderComp.enabledInHierarchy) {
             renderComp.disableRender();
-        } else {
+        }
+        else {
             renderComp._validateRender();
         }
         renderComp._inValidateList = false;
@@ -242,7 +244,8 @@ RenderFlow.validateRenderers = function() {
     _validateList.length = 0;
 };
 
-RenderFlow.visitRootNode = function(rootNode) {
+
+RenderFlow.visitRootNode = function (rootNode) {
     RenderFlow.validateRenderers();
 
     let preCullingMask = _cullingMask;
@@ -274,7 +277,7 @@ RenderFlow.visitRootNode = function(rootNode) {
     _cullingMask = preCullingMask;
 };
 
-RenderFlow.render = function(rootNode, dt) {
+RenderFlow.render = function (rootNode, dt) {
     _batcher.reset();
     _batcher.walking = true;
 
@@ -286,7 +289,7 @@ RenderFlow.render = function(rootNode, dt) {
     _forward.render(_batcher._renderScene, dt);
 };
 
-RenderFlow.renderCamera = function(camera, rootNode) {
+RenderFlow.renderCamera = function (camera, rootNode) {
     _batcher.reset();
     _batcher.walking = true;
 
@@ -298,7 +301,7 @@ RenderFlow.renderCamera = function(camera, rootNode) {
     _forward.renderCamera(camera, _batcher._renderScene);
 };
 
-RenderFlow.init = function(batcher, forwardRenderer) {
+RenderFlow.init = function (batcher, forwardRenderer) {
     _batcher = batcher;
     _forward = forwardRenderer;
 
@@ -308,7 +311,7 @@ RenderFlow.init = function(batcher, forwardRenderer) {
     }
 };
 
-RenderFlow.getBachther = function() {
+RenderFlow.getBachther = function () {
     return _batcher;
 };
 

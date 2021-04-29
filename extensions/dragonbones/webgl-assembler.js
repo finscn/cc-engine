@@ -26,9 +26,6 @@
 import Assembler from '../../cocos2d/core/renderer/assembler';
 import Mat4 from '../../cocos2d/core/value-types/mat4';
 
-// TODO: use InstanceAgent, and use custom vfmtInstance & vfmtData
-import { getBuffer, getVBuffer, vfmtInstance } from '../../cocos2d/core/renderer/webgl/instance-buffer'
-
 const Armature = require('./ArmatureDisplay');
 const RenderFlow = require('../../cocos2d/core/renderer/render-flow');
 const gfx = cc.gfx;
@@ -168,7 +165,7 @@ export default class ArmatureAssembler extends Assembler {
 
             indices = slot._indices;
             _indexCount = indices.length;
-
+            
             offsetInfo = _buffer.request(_vertexCount, _indexCount);
             _indexOffset = offsetInfo.indiceOffset;
             _vfOffset = offsetInfo.byteOffset >> 2;
@@ -185,7 +182,7 @@ export default class ArmatureAssembler extends Assembler {
             _m13 = slotMatm[13];
 
             for (let vi = 0, vl = vertices.length; vi < vl;) {
-                _x = vertices[vi++];
+                _x = vertices[vi++]; 
                 _y = vertices[vi++];
 
                 vbuf[_vfOffset++] = _x * _m00 + _y * _m04 + _m12; // x
@@ -202,87 +199,6 @@ export default class ArmatureAssembler extends Assembler {
         }
     }
 
-    realTimeTraverseInstance (armature, parentMat, parentOpacity) {
-        let slots = armature._slots;
-        let material;
-        let vertices, indices;
-        let slotColor;
-        let slot;
-        let slotMat;
-        let slotMatm;
-
-        let instanceBuffer = getBuffer();
-        let instanceVBuffer = getVBuffer();
-        let vertexFloats = vfmtInstance._bytes / 4;
-
-        for (let i = 0, l = slots.length; i < l; i++) {
-            slot = slots[i];
-            slotColor = slot._color;
-
-            if (!slot._visible || !slot._displayData) continue;
-
-            if (parentMat) {
-                slot._mulMat(slot._worldMatrix, parentMat, slot._matrix);
-            } else {
-                slot._mulMat(slot._worldMatrix, armature.display._ccNode._worldMatrix, slot._matrix);
-            }
-
-            if (slot.childArmature) {
-                this.realTimeTraverse(slot.childArmature, slot._worldMatrix, parentOpacity * slotColor.a / 255);
-                continue;
-            }
-
-            material = _getSlotMaterial(slot.getTexture(), slot._blendMode);
-            if (!material) {
-                continue;
-            }
-
-            if (_mustFlush || material.getHash() !== _renderer.material.getHash()) {
-                _mustFlush = false;
-                _renderer._flush();
-                _renderer.node = _node;
-                _renderer.material = material;
-            }
-
-            // _handleColor(slotColor, parentOpacity);
-            slotMat = slot._worldMatrix;
-            slotMatm = slotMat.m;
-
-            vertices = slot._localVertices;
-
-            if (CC_DEBUG && vertices.length > 16) {
-                console.warn('DragonBone Instance vertices are not quad type.');
-            }
-
-            let offset = instanceBuffer.instanceOffset * vertexFloats;
-            // uv
-            instanceVBuffer[offset++] = vertices[2]     // l
-            instanceVBuffer[offset++] = vertices[3]     // b
-            instanceVBuffer[offset++] = vertices[6]     // r
-            instanceVBuffer[offset++] = vertices[11]    // t
-            // local
-            instanceVBuffer[offset++] = vertices[0]     // l
-            instanceVBuffer[offset++] = vertices[1]     // b
-            instanceVBuffer[offset++] = vertices[4]     // r
-            instanceVBuffer[offset++] = vertices[9]     // t
-            // world matrix
-            instanceVBuffer[offset++] = slotMatm[0]
-            instanceVBuffer[offset++] = slotMatm[1]
-            instanceVBuffer[offset++] = slotMatm[4]
-            instanceVBuffer[offset++] = slotMatm[5]
-            instanceVBuffer[offset++] = slotMatm[12]
-            instanceVBuffer[offset++] = slotMatm[13]
-            // uv rotate
-            instanceVBuffer[offset++] = 0
-            // texture id
-            instanceVBuffer[offset++] = 2
-
-            instanceBuffer.instanceOffset++;
-        }
-
-        cc.renderer._handle._buffer = instanceBuffer;
-    }
-
     cacheTraverse (frame, parentMat) {
         if (!frame) return;
         let segments = frame.segments;
@@ -293,7 +209,7 @@ export default class ArmatureAssembler extends Assembler {
         let offsetInfo;
         let vertices = frame.vertices;
         let indices = frame.indices;
-
+        
         let frameVFOffset = 0, frameIndexOffset = 0, segVFCount = 0;
         if (parentMat) {
             let parentMatm = parentMat.m;
@@ -327,7 +243,7 @@ export default class ArmatureAssembler extends Assembler {
 
             _vertexCount = segInfo.vertexCount;
             _indexCount = segInfo.indexCount;
-
+            
             offsetInfo = _buffer.request(_vertexCount, _indexCount);
             _indexOffset = offsetInfo.indiceOffset;
             _vertexOffset = offsetInfo.vertexOffset;
@@ -375,7 +291,7 @@ export default class ArmatureAssembler extends Assembler {
 
     fillBuffers (comp, renderer) {
         comp.node._renderFlag |= RenderFlow.FLAG_UPDATE_RENDER_DATA;
-
+        
         let armature = comp._armature;
         if (!armature) return;
 
@@ -409,12 +325,7 @@ export default class ArmatureAssembler extends Assembler {
             this.cacheTraverse(comp._curFrame, worldMat);
         } else {
             // Traverse all armature.
-            if (comp.useInstance) {
-                this.realTimeTraverseInstance(armature, worldMat, 1.0);
-            }
-            else {
-                this.realTimeTraverse(armature, worldMat, 1.0);
-            }
+            this.realTimeTraverse(armature, worldMat, 1.0);
 
             let graphics = comp._debugDraw;
             if (comp.debugBones && graphics) {
@@ -446,7 +357,7 @@ export default class ArmatureAssembler extends Assembler {
                 }
             }
         }
-
+        
         // sync attached node matrix
         renderer.worldMatDirty++;
         comp.attachUtil._syncAttachedNode();

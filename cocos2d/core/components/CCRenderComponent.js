@@ -82,20 +82,9 @@ let RenderComponent = cc.Class({
     },
 
     _resetAssembler () {
-
-        let oldAssembler = this._assembler;
         Assembler.init(this);
         this._updateColor();
         this.setVertsDirty();
-
-        if (oldAssembler !== this._assembler) {
-            if (oldAssembler && oldAssembler.isInstance) {
-                oldAssembler.releaseBlockInfo();
-            }
-            if (this.enabledInHierarchy && this._assembler.isInstance) {
-                this._assembler.initBlockInfo();
-            }
-        }
     },
 
     __preload () {
@@ -111,11 +100,9 @@ let RenderComponent = cc.Class({
         this.node._renderFlag |= RenderFlow.FLAG_OPACITY_COLOR;
         
         this.setVertsDirty();
-        this._assembler.onEnable();
     },
 
     onDisable () {
-        this._assembler.onDisable();
         this.node._renderComponent = null;
         this.disableRender();
     },

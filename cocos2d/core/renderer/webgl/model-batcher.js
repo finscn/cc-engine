@@ -69,7 +69,7 @@ var ModelBatcher = function (device, renderScene) {
     this._sortKey = 0;
 
     this.node = this._dummyNode;
-
+    
     this.parentOpacity = 1;
     this.parentOpacityDirty = 0;
     this.worldMatDirty = 0;
@@ -77,7 +77,7 @@ var ModelBatcher = function (device, renderScene) {
 
 ModelBatcher.prototype = {
     constructor: ModelBatcher,
-
+    
     reset() {
         // Reset pools
         this._iaPool.reset();
@@ -119,7 +119,7 @@ ModelBatcher.prototype = {
         this.material = material;
         let effect = material.effect;
         if (!effect) return;
-
+        
         // Generate model
         let model = this._modelPool.add();
         this._batchedModels.push(model);
@@ -128,38 +128,28 @@ ModelBatcher.prototype = {
         model.setNode(this.node);
         model.setEffect(effect, null);
         model.setInputAssembler(empty_ia);
-
+        
         this._renderScene.addModel(model);
     },
 
     _flush () {
         let material = this.material,
-            buffer = this._buffer;
-        let start = 0, count = 0;
-        if (buffer.isInstance) {
-            start = buffer.instanceStart;
-            count = buffer.instanceOffset - buffer.instanceStart;
-        }
-        else {
-            start = buffer.indiceStart;
-            count = buffer.indiceOffset - buffer.indiceStart;
-        }
-
-        if (!this.walking || !material || count <= 0) {
+            buffer = this._buffer,
+            indiceCount = buffer.indiceOffset - buffer.indiceStart;
+        if (!this.walking || !material || indiceCount <= 0) {
             return;
         }
 
         let effect = material.effect;
         if (!effect) return;
-
+        
         // Generate ia
         let ia = this._iaPool.add();
         ia._vertexBuffer = buffer._vb;
         ia._indexBuffer = buffer._ib;
-        ia._start = start;
-        ia._count = count;
-        ia.isInstance = buffer.isInstance;
-
+        ia._start = buffer.indiceStart;
+        ia._count = indiceCount;
+        
         // Generate model
         let model = this._modelPool.add();
         this._batchedModels.push(model);
@@ -168,7 +158,7 @@ ModelBatcher.prototype = {
         model.setNode(this.node);
         model.setEffect(effect);
         model.setInputAssembler(ia);
-
+        
         this._renderScene.addModel(model);
         buffer.forwardIndiceStartToOffset();
     },
@@ -181,7 +171,7 @@ ModelBatcher.prototype = {
         let material = this.material;
         let effect = material.effect;
         if (!effect) return;
-
+        
         // Generate model
         let model = this._modelPool.add();
         this._batchedModels.push(model);
@@ -190,7 +180,7 @@ ModelBatcher.prototype = {
         model.setNode(this.node);
         model.setEffect(effect);
         model.setInputAssembler(ia);
-
+        
         this._renderScene.addModel(model);
     },
 
@@ -203,14 +193,9 @@ ModelBatcher.prototype = {
         this._flush();
 
         for (let key in _buffers) {
-            let buffer = _buffers[key];
-            if (buffer.isInstance) {
-                buffer.commitInstanceData()
-                buffer._dirty = true
-            }
-            buffer.uploadData();
+            _buffers[key].uploadData();
         }
-
+    
         this.walking = false;
     },
 

@@ -441,48 +441,10 @@ function _commitCullMode(gl, cur, next) {
   gl.cullFace(next.cullMode);
 }
 
-let quadVertices = new Float32Array([
-  0, 0, 1, 0,
-  0, 1, 1, 1
-]);
-let quadIndices = new Uint16Array([0,1,2,1,2,3]);
-
-let quadVB;
-let quadIB;
-
-let posLocation = -1
-
-function bindInstance (gl, program) {
-
-  if (posLocation === -1) {
-    posLocation = program._attributes.findIndex(a => a.name === cc.gfx.ATTR_POSITION)
-  }
-
-  if (!quadVB) {
-    quadVB = gl.createBuffer()
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadVB);
-    gl.bufferData(gl.ARRAY_BUFFER, quadVertices, gl.STATIC_DRAW);
-  }
-  else {
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadVB);
-  }
-  gl.enableVertexAttribArray(posLocation)
-  gl.vertexAttribPointer(posLocation, 2, gl.FLOAT, false, 2 * 4, 0);
-
-  if (!quadIB) {
-    quadIB = gl.createBuffer()
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIB);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, quadIndices, gl.STATIC_DRAW);
-  }
-  else {
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, quadIB);
-  }
-}
-
 /**
  * _commitVertexBuffers
  */
-function _commitVertexBuffers(device, gl, cur, next, isInstance) {
+function _commitVertexBuffers(device, gl, cur, next) {
   let attrsDirty = false;
 
   // nothing changed for vertex buffer
@@ -520,14 +482,12 @@ function _commitVertexBuffers(device, gl, cur, next, isInstance) {
 
       gl.bindBuffer(gl.ARRAY_BUFFER, vb._glID);
 
-      // let maxLocation = -1;
-
       for (let j = 0; j < next.program._attributes.length; ++j) {
         let attr = next.program._attributes[j];
 
         let el = vb._format.element(attr.name);
         if (!el) {
-          // console.warn(`Can not find vertex attribute: ${attr.name}`);
+          console.warn(`Can not find vertex attribute: ${attr.name}`);
           continue;
         }
 
@@ -545,28 +505,14 @@ function _commitVertexBuffers(device, gl, cur, next, isInstance) {
           el.stride,
           el.offset + vbOffset * el.stride
         );
-
-        const angleExt = device.ext('ANGLE_instanced_arrays')
-        if (angleExt) {
-          if (isInstance) {
-            angleExt.vertexAttribDivisorANGLE(attr.location, 1);
-            // maxLocation = Math.max(attr.location, maxLocation);
-          }
-          else {
-            angleExt.vertexAttribDivisorANGLE(attr.location, 0);
-          }
-        }
-
       }
     }
 
-    if (!isInstance) {
-      // disable unused attributes
-      for (let i = 0; i < device._caps.maxVertexAttribs; ++i) {
-        if (device._enabledAttributes[i] !== device._newAttributes[i]) {
-          gl.disableVertexAttribArray(i);
-          device._enabledAttributes[i] = 0;
-        }
+    // disable unused attributes
+    for (let i = 0; i < device._caps.maxVertexAttribs; ++i) {
+      if (device._enabledAttributes[i] !== device._newAttributes[i]) {
+        gl.disableVertexAttribArray(i);
+        device._enabledAttributes[i] = 0;
       }
     }
   }
@@ -698,7 +644,6 @@ export default class Device {
       'WEBGL_compressed_texture_s3tc',
       'WEBGL_depth_texture',
       'WEBGL_draw_buffers',
-      'ANGLE_instanced_arrays'
     ]);
     this._initCaps();
     this._initStates();
@@ -1339,7 +1284,7 @@ export default class Device {
   resetDrawCalls () {
     this._stats.drawcalls = 0;
   }
-
+  
   /**
    * @method getDrawCalls
    */
@@ -1352,7 +1297,7 @@ export default class Device {
    * @param {Number} base
    * @param {Number} count
    */
-  draw(base, count, isInstance) {
+  draw(base, count) {
     const gl = this._gl;
     let cur = this._current;
     let next = this._next;
@@ -1370,15 +1315,12 @@ export default class Device {
     _commitCullMode(gl, cur, next);
 
     // commit vertex-buffer
-    _commitVertexBuffers(this, gl, cur, next, isInstance);
+    _commitVertexBuffers(this, gl, cur, next);
 
     // commit index-buffer
-    if (!isInstance) {
-      if (cur.indexBuffer !== next.indexBuffer) {
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, next.indexBuffer && next.indexBuffer._glID !== -1 ? next.indexBuffer._glID : null);
-      }
+    if (cur.indexBuffer !== next.indexBuffer) {
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, next.indexBuffer && next.indexBuffer._glID !== -1 ? next.indexBuffer._glID : null);
     }
-
 
     // commit program
     let programDirty = false;
@@ -1422,14 +1364,7 @@ export default class Device {
 
     if (count) {
       // drawPrimitives
-      if (isInstance) {
-        bindInstance(gl, next.program)
-        const angleExt = this.ext('ANGLE_instanced_arrays')
-        if (angleExt) {
-          angleExt.drawElementsInstancedANGLE(this._next.primitiveType, 6, next.indexBuffer._format, 0, count)
-        }
-      }
-      else if (next.indexBuffer) {
+      if (next.indexBuffer) {
         gl.drawElements(
           this._next.primitiveType,
           count,

@@ -151,8 +151,6 @@ let ArmatureDisplay = cc.Class({
             tooltip: CC_DEV && 'i18n:COMPONENT.dragon_bones.dragon_bones_atlas_asset'
         },
 
-        useInstance: false,
-
         _armatureName: '',
         /**
          * !#en The name of current armature.
