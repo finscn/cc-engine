@@ -65,9 +65,7 @@ var SpriteType = cc.Enum({
      * !#zh 以 Mesh 三角形组成的类型
      * @property {Number} MESH
      */
-    MESH: 4,
-
-    QuadInstance: 5,
+    MESH: 4
 });
 
 /**
@@ -363,7 +361,7 @@ var Sprite = cc.Class({
             tooltip: CC_DEV && 'i18n:COMPONENT.sprite.trim'
         },
 
-
+      
         /**
          * !#en specify the size tracing mode.
          * !#zh 精灵尺寸调整模式
@@ -433,7 +431,7 @@ var Sprite = cc.Class({
 
     onDisable () {
         this._super();
-
+        
         this.node.off(cc.Node.EventType.SIZE_CHANGED, this.setVertsDirty, this);
         this.node.off(cc.Node.EventType.ANCHOR_CHANGED, this.setVertsDirty, this);
     },
@@ -474,7 +472,7 @@ var Sprite = cc.Class({
     _validateRender () {
         let spriteFrame = this._spriteFrame;
         if (this._materials[0] &&
-            spriteFrame &&
+            spriteFrame && 
             spriteFrame.textureLoaded()) {
             return;
         }
@@ -484,7 +482,7 @@ var Sprite = cc.Class({
 
     _applySpriteSize () {
         if (!this._spriteFrame || !this.isValid)  return;
-
+        
         if (SizeMode.RAW === this._sizeMode) {
             var size = this._spriteFrame._originalSize;
             this.node.setContentSize(size);
@@ -492,7 +490,7 @@ var Sprite = cc.Class({
             var rect = this._spriteFrame._rect;
             this.node.setContentSize(rect.width, rect.height);
         }
-
+        
         this.setVertsDirty();
     },
 
