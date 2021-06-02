@@ -22,13 +22,22 @@ function Atlas (width, height) {
     this._count = 0;
 }
 
-const _temp = new RenderTexture()
-_temp._hashDirty = true
-_temp._premultiplyAlpha = false
-Atlas.DEFAULT_HASH = _temp._getHash();
-_temp._hashDirty = true
-_temp._premultiplyAlpha = true
-Atlas.PREMULTIPLY_ALPHA_HASH = _temp._getHash();
+;(function() {
+    let _temp = new RenderTexture();
+
+    _temp._hashDirty = true;
+    _temp._premultiplyAlpha = false;
+    Atlas.DEFAULT_HASH = _temp._getHash();
+
+    _temp._hashDirty = true;
+    _temp._premultiplyAlpha = true;
+    Atlas.PREMULTIPLY_ALPHA_HASH = _temp._getHash();
+
+    setTimeout(function(){
+        _temp.destroy();
+        _temp = null;
+    },100);
+}());
 
 cc.js.mixin(Atlas.prototype, {
     insertSpriteFrame (spriteFrame) {
