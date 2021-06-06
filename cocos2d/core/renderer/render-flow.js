@@ -110,7 +110,7 @@ _proto._children = function (node) {
 
         // Advance the modification of the flag to avoid node attribute modification is invalid when opacity === 0.
         c._renderFlag |= worldDirtyFlag;
-        if (!c._activeInHierarchy || c._opacity === 0) continue;
+        if (!c._activeInHierarchy || c._opacity === 0 || c.invisible) continue;
 
         _cullingMask = c._cullingMask = c.groupIndex === 0 ? cullingMask : 1 << c.groupIndex;
 
