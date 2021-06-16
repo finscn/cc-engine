@@ -420,7 +420,7 @@ cc.TMXMapInfo = function (tmxFile, tsxMap, textures, textureSizes, imageLayerTex
     this.currentString = null;
     this.renderOrder = cc.TiledMap.RenderOrder.RightDown;
 
-    this._supportVersion = [1, 4, 0];
+    this._supportVersion = [1, 7, 0];
     this._objectGroups = [];
     this._allChildren = [];
     this._mapSize = cc.size(0, 0);
