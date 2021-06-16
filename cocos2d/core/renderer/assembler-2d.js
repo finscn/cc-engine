@@ -1,7 +1,6 @@
 import Assembler from './assembler';
 import dynamicAtlasManager from './utils/dynamic-atlas/manager';
 import RenderData from './webgl/render-data';
-import { Color } from '../value-types';
 
 export default class Assembler2D extends Assembler {
     constructor () {
@@ -53,7 +52,7 @@ export default class Assembler2D extends Assembler {
 
         let vl = local[0], vr = local[2],
             vb = local[1], vt = local[3];
-        
+
         let floatsPerVert = this.floatsPerVert;
         let vertexOffset = 0;
         let justTranslate = a === 1 && b === 0 && c === 0 && d === 1;
@@ -147,7 +146,7 @@ export default class Assembler2D extends Assembler {
         let material = comp._materials[0];
         if (!material) return;
 
-        if (material.getProperty('texture') !== frame._texture) {
+        if (material.getProperty('texture') !== frame._texture.getImpl()) {
             // texture was packed to dynamic atlas, should update uvs
             comp._vertsDirty = true;
             comp._updateMaterial();
