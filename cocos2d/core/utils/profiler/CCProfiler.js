@@ -123,7 +123,8 @@ function updateLabel (stat) {
 function afterDraw () {
     let now = performance.now();
     _stats['render']._counter.end(now);
-    _stats['draws']._counter.value = cc.renderer.drawCalls;
+    _stats['draws']._counter.value = cc.renderer.drawCalls - cc.profiler.drawCalls;
+    _stats['draws'].desc = 'Draw Call ( -' + cc.profiler.drawCalls + ' )';
     _stats['frame']._counter.end(now);
     _stats['fps']._counter.frame(now);
     
@@ -144,6 +145,9 @@ function afterDraw () {
 }
 
 cc.profiler = module.exports = {
+
+    drawCalls: 1,
+
     isShowingStats () {
         return _showFPS;
     },
