@@ -450,7 +450,7 @@ var Sprite = cc.Class({
             if (oldDefine !== undefined && !oldDefine) {
                 material.define('USE_TEXTURE', true);
             }
-            let textureImpl = texture && texture.getImpl();
+            let textureImpl = texture && texture._texture;
             if (material.getProperty('texture') !== textureImpl) {
                 material.setProperty('texture', texture);
             }

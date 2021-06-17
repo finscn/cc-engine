@@ -146,7 +146,7 @@ export default class Assembler2D extends Assembler {
         let material = comp._materials[0];
         if (!material) return;
 
-        if (material.getProperty('texture') !== frame._texture.getImpl()) {
+        if (material.getProperty('texture') !== frame._texture._texture) {
             // texture was packed to dynamic atlas, should update uvs
             comp._vertsDirty = true;
             comp._updateMaterial();

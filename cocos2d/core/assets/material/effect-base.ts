@@ -54,7 +54,7 @@ export default class EffectBase {
 
         let compareValue = value;
         if (prop.type === enums.PARAM_TEXTURE_2D) {
-            compareValue = value && value.getImpl();
+            compareValue = value && value._texture;
         }
 
         if (prop.value === compareValue) {
