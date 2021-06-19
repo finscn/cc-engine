@@ -110,7 +110,7 @@ _proto._children = function (node) {
 
         // Advance the modification of the flag to avoid node attribute modification is invalid when opacity === 0.
         c._renderFlag |= worldDirtyFlag;
-        if (!c._activeInHierarchy || c._opacity === 0 || c.invisible) continue;
+        if (!c._activeInHierarchy || c._opacity === 0) continue;
 
         _cullingMask = c._cullingMask = c.groupIndex === 0 ? cullingMask : 1 << c.groupIndex;
 
@@ -151,16 +151,14 @@ EMPTY_FLOW._next = EMPTY_FLOW;
 let flows = {};
 
 function createFlow (flag, next) {
+    if (flag === DONOTHING || flag === BREAK_FLOW) {
+        return EMPTY_FLOW
+    }
+
     let flow = new RenderFlow();
     flow._next = next || EMPTY_FLOW;
 
     switch (flag) {
-        case DONOTHING:
-            flow._func = flow._doNothing;
-            break;
-        case BREAK_FLOW:
-            flow._func = flow._doNothing;
-            break;
         case LOCAL_TRANSFORM:
             flow._func = flow._localTransform;
             break;
