@@ -54,6 +54,13 @@ function _worldTransformPost(node) {
     _batcher.worldMatDirty--;
 };
 
+_proto._updateRenderData = function(node) {
+    let comp = node._renderComponent;
+    comp._assembler.updateRenderData(comp);
+    node._renderFlag &= ~UPDATE_RENDER_DATA;
+    // this._next._func(node);
+};
+
 _proto._opacity = function (node) {
     _batcher.parentOpacityDirty++;
 
@@ -75,13 +82,6 @@ _proto._color = function (node) {
     }
 
     node._renderFlag &= ~COLOR;
-    // this._next._func(node);
-};
-
-_proto._updateRenderData = function(node) {
-    let comp = node._renderComponent;
-    comp._assembler.updateRenderData(comp);
-    node._renderFlag &= ~UPDATE_RENDER_DATA;
     // this._next._func(node);
 };
 
@@ -158,7 +158,7 @@ function createFlow (flag, next) {
     let flow = new RenderFlow();
     flow._next = next || EMPTY_FLOW;
 
-    if (flag < UPDATE_RENDER_DATA) {
+    if (flag < COLOR) {
         switch (flag) {
             case LOCAL_TRANSFORM:
                 flow._func = flow._localTransform;
@@ -166,17 +166,17 @@ function createFlow (flag, next) {
             case WORLD_TRANSFORM:
                 flow._func = flow._worldTransform;
                 break;
+            case UPDATE_RENDER_DATA:
+                flow._func = flow._updateRenderData;
+                break;
             case OPACITY:
                 flow._func = flow._opacity;
-                break;
-            case COLOR:
-                flow._func = flow._color;
                 break;
         }
     } else {
         switch (flag) {
-            case UPDATE_RENDER_DATA:
-                flow._func = flow._updateRenderData;
+            case COLOR:
+                flow._func = flow._color;
                 break;
             case RENDER:
                 flow._func = flow._render;
@@ -215,11 +215,15 @@ function init(node) {
         currentFlow = currentFlow._next;
     }
 
-    let _pl = postFlow.length - 1;
-    for (; _pl >= postCount; _pl--) {
-        postFlow[_pl](node);
+    for (let _p = postCount, _pl = postFlow.length; _p < _pl; _p++) {
+        postFlow.pop()(node);
     }
-    postFlow.length = _pl;
+
+    // let _pl = postFlow.length - 1;
+    // for (; _pl >= postCount; _pl--) {
+    //     postFlow[_pl](node);
+    // }
+    // postFlow.length = _pl;
 
 }
 
@@ -322,15 +326,16 @@ RenderFlow.getBachther = function () {
     return _batcher;
 };
 
+
 RenderFlow.FLAG_DONOTHING = DONOTHING;
 RenderFlow.FLAG_BREAK_FLOW = BREAK_FLOW;
 RenderFlow.FLAG_LOCAL_TRANSFORM = LOCAL_TRANSFORM;
 RenderFlow.FLAG_WORLD_TRANSFORM = WORLD_TRANSFORM;
 RenderFlow.FLAG_TRANSFORM = TRANSFORM;
+RenderFlow.FLAG_UPDATE_RENDER_DATA = UPDATE_RENDER_DATA;
 RenderFlow.FLAG_OPACITY = OPACITY;
 RenderFlow.FLAG_COLOR = COLOR;
 RenderFlow.FLAG_OPACITY_COLOR = OPACITY_COLOR;
-RenderFlow.FLAG_UPDATE_RENDER_DATA = UPDATE_RENDER_DATA;
 RenderFlow.FLAG_RENDER = RENDER;
 RenderFlow.FLAG_CHILDREN = CHILDREN;
 RenderFlow.FLAG_POST_RENDER = POST_RENDER;
