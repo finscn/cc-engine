@@ -158,31 +158,36 @@ function createFlow (flag, next) {
     let flow = new RenderFlow();
     flow._next = next || EMPTY_FLOW;
 
-    switch (flag) {
-        case LOCAL_TRANSFORM:
-            flow._func = flow._localTransform;
-            break;
-        case WORLD_TRANSFORM:
-            flow._func = flow._worldTransform;
-            break;
-        case OPACITY:
-            flow._func = flow._opacity;
-            break;
-        case COLOR:
-            flow._func = flow._color;
-            break;
-        case UPDATE_RENDER_DATA:
-            flow._func = flow._updateRenderData;
-            break;
-        case RENDER:
-            flow._func = flow._render;
-            break;
-        case CHILDREN:
-            flow._func = flow._children;
-            break;
-        case POST_RENDER:
-            flow._func = flow._postRender;
-            break;
+    if (flag < UPDATE_RENDER_DATA) {
+        switch (flag) {
+            case LOCAL_TRANSFORM:
+                flow._func = flow._localTransform;
+                break;
+            case WORLD_TRANSFORM:
+                flow._func = flow._worldTransform;
+                break;
+            case OPACITY:
+                flow._func = flow._opacity;
+                break;
+            case COLOR:
+                flow._func = flow._color;
+                break;
+        }
+    } else {
+        switch (flag) {
+            case UPDATE_RENDER_DATA:
+                flow._func = flow._updateRenderData;
+                break;
+            case RENDER:
+                flow._func = flow._render;
+                break;
+            case CHILDREN:
+                flow._func = flow._children;
+                break;
+            case POST_RENDER:
+                flow._func = flow._postRender;
+                break;
+        }
     }
 
     return flow;
