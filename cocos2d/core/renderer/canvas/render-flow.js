@@ -25,8 +25,6 @@
 
 import RenderFlow from '../render-flow';
 
-let postFlow = RenderFlow.postFlow;
-
 RenderFlow.prototype._draw = function (node, func) {
     let batcher = RenderFlow.getBachther();
     let ctx = batcher._device._ctx;
@@ -36,23 +34,7 @@ RenderFlow.prototype._draw = function (node, func) {
 
     let comp = node._renderComponent;
     comp._assembler[func](ctx, comp);
-
-    // this._next._func(node);
-
-    let currentFlow = this._next;
-
-    let postCount = postFlow.length;
-    while (currentFlow) {
-        currentFlow._func(node);
-        if (currentFlow === currentFlow._next){
-            break
-        }
-        currentFlow = currentFlow._next;
-    }
-    for (let _p = postCount, _pl = postFlow.length; _p < _pl; _p++) {
-        postFlow.pop()(node);
-    }
-
+    this._next._func(node);
 }
 
 RenderFlow.prototype._render = function (node) {
