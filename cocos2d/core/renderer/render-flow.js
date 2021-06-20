@@ -127,7 +127,7 @@ _proto._children = function (node) {
         }
         let _pl = postFlow.length - 1;
         for (; _pl >= postCount; _pl--) {
-            postFlow[_pl](node);
+            postFlow[_pl](c);
         }
         postFlow.length = _pl;
 
@@ -277,7 +277,7 @@ RenderFlow.visitRootNode = function (rootNode) {
     }
     let _pl = postFlow.length - 1;
     for (; _pl >= postCount; _pl--) {
-        postFlow[_pl](node);
+        postFlow[_pl](rootNode);
     }
     postFlow.length = _pl;
 
