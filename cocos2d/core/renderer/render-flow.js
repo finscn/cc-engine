@@ -125,9 +125,11 @@ _proto._children = function (node) {
             currentFlow._func(c);
             currentFlow = currentFlow._next;
         }
-        for (let _p = postCount, _pl = postFlow.length; _p < _pl; _p++) {
-            postFlow.pop()(c);
+        let _pl = postFlow.length - 1;
+        for (; _pl >= postCount; _pl--) {
+            postFlow[_pl](node);
         }
+        postFlow.length = _pl;
 
         c._color._val = colorVal;
     }
@@ -273,9 +275,11 @@ RenderFlow.visitRootNode = function (rootNode) {
         currentFlow._func(rootNode);
         currentFlow = currentFlow._next;
     }
-    for (let _p = postCount, _pl = postFlow.length; _p < _pl; _p++) {
-        postFlow.pop()(rootNode);
+    let _pl = postFlow.length - 1;
+    for (; _pl >= postCount; _pl--) {
+        postFlow[_pl](node);
     }
+    postFlow.length = _pl;
 
     if (withWorldTransform) {
         _batcher.worldMatDirty--;
