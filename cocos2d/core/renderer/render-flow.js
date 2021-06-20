@@ -214,9 +214,13 @@ function init(node) {
         currentFlow._func(node);
         currentFlow = currentFlow._next;
     }
-    for (let _p = postCount, _pl = postFlow.length; _p < _pl; _p++) {
-        postFlow.pop()(node);
+
+    let _pl = postFlow.length - 1;
+    for (; _pl >= postCount; _pl--) {
+        postFlow[_pl](node);
     }
+    postFlow.length = _pl;
+
 }
 
 let postFlow = [];
