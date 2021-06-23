@@ -28,6 +28,7 @@ require('./CCAsset');
 require('./CCFont');
 require('./CCPrefab');
 require('./CCAudioClip');
+require('./CCVideoClip');
 require('./CCScripts');
 require('./CCSceneAsset');
 require('./CCSpriteFrame');

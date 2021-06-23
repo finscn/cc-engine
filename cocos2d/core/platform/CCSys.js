@@ -445,6 +445,12 @@ function initSys () {
      */
     sys.LINKSURE = 119;
     /**
+     * @property {Number} TAOBAO
+     * @readOnly
+     * @default 120
+     */
+    sys.TAOBAO = 120;
+    /**
      * BROWSER_TYPE_WECHAT
      * @property {String} BROWSER_TYPE_WECHAT
      * @readOnly
@@ -610,7 +616,7 @@ function initSys () {
      * Is native ? This is set to be true in jsb auto.
      * @property {Boolean} isNative
      */
-    sys.isNative = CC_JSB || CC_RUNTIME;
+    sys.isNative = CC_JSB;
 
     /**
      * Is web browser ?

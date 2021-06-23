@@ -235,11 +235,9 @@ var packManager = {
                     for (var id in result) {
                         files.add(id, result[id]);
                     }
+                } else {
+                    err.message = `unpack ${url} failed! details: ${err.message}`;
                 }
-                else {
-                    err.message += ": " + url
-                }
-
                 var callbacks = _loading.remove(pack.uuid);
                 for (var i = 0, l = callbacks.length; i < l; i++) {
                     var cb = callbacks[i];
