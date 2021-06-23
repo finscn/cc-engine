@@ -292,7 +292,6 @@ let TiledObjectGroup = cc.Class({
                     imgNode.anchorX = tileOffsetX / object.width;
                     imgNode.anchorY = tileOffsetY / object.height;
                 }
-
                 imgNode.active = object.visible;
                 imgNode.angle = -object.rotation;
                 imgNode.x = object.x - leftTopX;

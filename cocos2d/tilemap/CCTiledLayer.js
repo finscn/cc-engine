@@ -722,6 +722,18 @@ let TiledLayer = cc.Class({
 
     /**
      * !#en
+     * Returns the tiles data.An array fill with GIDs. <br />
+     * !#zh
+     * 返回 tiles 数据. 由GID构成的一个数组. <br />
+     * @method getTiles
+     * @return {Number[]}
+     */
+    getTiles() {
+        return this._tiles;
+    },
+
+    /**
+     * !#en
      * Returns the tile gid at a given tile coordinate. <br />
      * if it returns 0, it means that the tile is empty. <br />
      * !#zh
@@ -1000,7 +1012,6 @@ let TiledLayer = cc.Class({
             rows = this._layerSize.height,
             cols = this._layerSize.width,
             grids = this._texGrids;
-
         let gid, grid, left, bottom,
             axis, diffX1, diffY1, odd_even, diffX2, diffY2;
 

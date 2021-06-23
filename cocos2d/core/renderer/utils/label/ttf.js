@@ -262,7 +262,6 @@ export default class TTFAssembler extends Assembler2D {
         if (_shadowComp) {
             this._setupShadow();
         }
-
         if (_outlineComp) {
             this._setupOutline();
         }

@@ -485,7 +485,6 @@ AssetManager.prototype = {
      */
     loadAny (requests, options, onProgress, onComplete) {
         var { options, onProgress, onComplete } = parseParameters(options, onProgress, onComplete);
-
         options.preset = options.preset || 'default';
         requests = Array.isArray(requests) ? requests.concat() : requests;
         let task = new Task({input: requests, onProgress, onComplete: asyncify(onComplete), options});
@@ -526,7 +525,6 @@ AssetManager.prototype = {
      */
     preloadAny (requests, options, onProgress, onComplete) {
         var { options, onProgress, onComplete } = parseParameters(options, onProgress, onComplete);
-
         options.preset = options.preset || 'preload';
         requests = Array.isArray(requests) ? requests.concat() : requests;
         var task = new Task({input: requests, onProgress, onComplete: asyncify(onComplete), options});
@@ -573,7 +571,6 @@ AssetManager.prototype = {
                     depend.bundle = bundle.name;
                 }
             }
-
             this.loadAny(depend, options, function (err, native) {
                 if (!err) {
                     if (asset.isValid && !asset._nativeAsset) {

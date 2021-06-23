@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.  
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
 
 import enums from '../../../renderer/enums';
 

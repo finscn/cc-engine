@@ -52,7 +52,6 @@ export default class Assembler2D extends Assembler {
 
         let vl = local[0], vr = local[2],
             vb = local[1], vt = local[3];
-
         let floatsPerVert = this.floatsPerVert;
         let vertexOffset = 0;
         let justTranslate = a === 1 && b === 0 && c === 0 && d === 1;
@@ -145,7 +144,6 @@ export default class Assembler2D extends Assembler {
         }
         let material = comp._materials[0];
         if (!material) return;
-
         if (material.getProperty('texture') !== frame._texture._texture) {
             // texture was packed to dynamic atlas, should update uvs
             comp._vertsDirty = true;

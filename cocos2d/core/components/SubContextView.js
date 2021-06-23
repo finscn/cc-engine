@@ -27,7 +27,7 @@ const Component = require('./CCComponent');
 
 /**
  * !#en SubContextView is a view component which controls open data context viewport in minigame platform.<br/>
- * The component's node size decide the viewport of the sub context content in main context, 
+ * The component's node size decide the viewport of the sub context content in main context,
  * the entire sub context texture will be scaled to the node's bounding box area.<br/>
  * This component provides multiple important features:<br/>
  * 1. Sub context could use its own resolution size and policy.<br/>
@@ -35,7 +35,7 @@ const Component = require('./CCComponent');
  * 3. Resolution of sub context content could be increased.<br/>
  * 4. User touch input is transformed to the correct viewport.<br/>
  * 5. Texture update is handled by this component. User don't need to worry.<br/>
- * One important thing to be noted, whenever the node's bounding box change, 
+ * One important thing to be noted, whenever the node's bounding box change,
  * !#zh SubContextView 可以用来控制小游戏平台开放数据域在主域中的视窗的位置。<br/>
  * 这个组件的节点尺寸决定了开放数据域内容在主域中的尺寸，整个开放数据域会被缩放到节点的包围盒范围内。<br/>
  * 在这个组件的控制下，用户可以更自由得控制开放数据域：<br/>
@@ -58,7 +58,7 @@ let SubContextView = cc.Class({
 
     properties: {
         _firstlyEnabled: true,
-        
+
         _fps: 60,
 
         fps: {

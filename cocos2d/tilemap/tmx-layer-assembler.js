@@ -411,7 +411,6 @@ export default class TmxAssembler extends Assembler {
         let pOpacity = layerNode.parent ? layerNode.parent._opacity / 255 : 1.0;
         let opacity = pOpacity * layerNode._opacity;
         layerNode._color._fastSetA(opacity);
-
         let color = layerNode._color._val;
         let tiledTiles = _comp._tiledTiles;
         let texGrids = _comp._texGrids;

@@ -728,7 +728,6 @@ let Label = cc.Class({
 
     _onBlendChanged () {
         if (!this.useSystemFont || !this.enabledInHierarchy) return;
-
         this._forceUpdateRenderData();
     },
 
@@ -746,7 +745,6 @@ let Label = cc.Class({
                 if (!this._frame) {
                     this._frame = new LabelFrame();
                 }
-
                 if (this.cacheMode === CacheMode.CHAR) {
                     this._letterTexture = this._assembler._getAssemblerData();
                     this._frame._refreshTexture(this._letterTexture);
