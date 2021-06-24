@@ -764,14 +764,18 @@ var Texture2D = cc.Class({
 
         if (cc.macro.CLEANUP_IMAGE_CACHE
             || (cc.macro.CLEANUP_NONPACK_IMAGE_CACHE && !this._packable)) {
-            if (this._image instanceof HTMLImageElement) {
-                this._clearImage();
-            }
-            else if (cc.sys.capabilities.imageBitmap && this._image instanceof ImageBitmap) {
-                this._image.close && this._image.close();
-            }
+            this._clearImageCache()
         }
     },
+
+    _clearImageCache(){
+        if (this._image instanceof HTMLImageElement) {
+            this._clearImage();
+        }
+        else if (cc.sys.capabilities.imageBitmap && this._image instanceof ImageBitmap) {
+            this._image.close && this._image.close();
+        }
+    }
 
     /**
      * !#en
