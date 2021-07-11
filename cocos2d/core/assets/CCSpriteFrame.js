@@ -677,7 +677,11 @@ let SpriteFrame = cc.Class(/** @lends cc.SpriteFrame# */{
         this._rect.y = this._original._y;
         this._texture = this._original._texture;
         this._original = null;
-        this._calculateUV();
+        if (this._texture.loaded) {
+            this._calculateUV();
+        } else {
+            this.ensureLoadTexture()
+        }
     },
 
     _calculateUV () {
